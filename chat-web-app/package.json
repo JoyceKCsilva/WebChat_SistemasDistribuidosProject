@@ -1,0 +1,14 @@
+{
+  "name": "chat-web-app",
+  "version": "1.0.0",
+  "description": "A simple chat application using WebSocket for real-time communication.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.0.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

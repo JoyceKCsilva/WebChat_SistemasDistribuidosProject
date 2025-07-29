@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Web App</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="login-overlay" class="overlay">
+        <div class="login-popup">
+            <h2>Bem-vindo ao Chat</h2>
+            <div class="login-form">
+                <input type="text" id="username" placeholder="Digite seu nome de usuário" />
+                <button id="join-btn">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Chat em Grupo</h2>
+            <div id="user-display"></div>
+        </div>
+        
+        <div class="messages" id="messages"></div>
+        
+        <div class="message-input-container">
+            <div class="message-input">
+                <input type="text" id="message" placeholder="Digite sua mensagem..." />
+                <button id="send-btn">Enviar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/chat.js"></script>
+</body>
+</html>
