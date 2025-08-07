@@ -1,0 +1,876 @@
+/* CSS específico para a página da sala */
+
+/* Classe utilitária para esconder elementos */
+.hidden {
+  display: none !important;
+}
+
+/* Layout da sala */
+.room-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f8f9fa;
+}
+
+/* Header da sala */
+.room-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.room-info h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.room-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-top: 0.5rem;
+}
+
+.room-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Conteúdo principal */
+.room-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar de usuários */
+.users-sidebar {
+  width: 250px;
+  background: white;
+  border-right: 1px solid #e1e5e9;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.users-sidebar h3 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1rem;
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+  color: #333 !important; /* Cor escura para contraste */
+}
+
+.user-item:hover {
+  background: #f8f9fa;
+}
+
+.user-name {
+  color: #333 !important; /* Garantir que o nome do usuário seja legível */
+  font-weight: 500;
+}
+
+.user-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #28a745;
+}
+
+.user-status.offline {
+  background: #6c757d;
+}
+
+/* Área principal do chat */
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+/* Container de mensagens */
+.messages-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.loading-messages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.messages {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Mensagens */
+.message {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 18px;
+  word-wrap: break-word;
+  animation: messageSlide 0.3s ease-out;
+  position: relative;
+}
+
+.message.sent {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 5px;
+}
+
+.message.received {
+  align-self: flex-start;
+  background: #ffffff;
+  border: 1px solid #e1e5e9;
+  border-bottom-left-radius: 5px;
+  color: #333333 !important;
+}
+
+.message .username {
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  opacity: 0.8;
+}
+
+.message.sent .username {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.message.received .username {
+  color: #667eea !important;
+}
+
+.message .content {
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
+  color: inherit !important;
+}
+
+.message.received .content {
+  color: #333333 !important;
+}
+
+.message .time {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  text-align: right;
+  color: inherit !important;
+}
+
+/* Mensagens com arquivo */
+.message.file {
+  padding: 1rem;
+}
+
+.file-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.message.received .file-attachment {
+  background: #e9ecef;
+}
+
+.file-icon {
+  font-size: 1.5rem;
+}
+
+.file-info {
+  flex: 1;
+}
+
+.file-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.file-size {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.file-download {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.file-download:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Anexo de áudio */
+.audio-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.message.received .audio-attachment {
+  background: #e9ecef;
+}
+
+.audio-attachment audio {
+  max-width: 250px;
+  height: 32px;
+}
+
+.audio-attachment .audio-icon {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.audio-attachment .audio-duration {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-left: 0.5rem;
+}
+
+/* Anexo de imagem */
+.image-attachment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.message.received .image-attachment {
+  background: #e9ecef;
+}
+
+.image-attachment img {
+  transition: transform 0.2s ease;
+}
+
+.image-attachment img:hover {
+  transform: scale(1.02);
+}
+
+/* Anexo de vídeo */
+.video-attachment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.message.received .video-attachment {
+  background: #e9ecef;
+}
+
+/* Anexo de documento */
+.document-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.document-attachment:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.message.received .document-attachment {
+  background: #e9ecef;
+}
+
+.message.received .document-attachment:hover {
+  background: #dee2e6;
+}
+
+.document-attachment .document-icon {
+  font-size: 2rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.document-attachment .file-type {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+.document-attachment .document-action {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  min-width: 30px;
+  text-align: center;
+}
+
+/* Área de input */
+.message-input-area {
+  border-top: 1px solid #e1e5e9;
+  background: white;
+}
+
+.file-preview {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e1e5e9;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #333 !important; /* Cor do texto escura para contraste */
+}
+
+.file-preview.hidden {
+  display: none;
+}
+
+.file-info {
+  flex: 1;
+  color: #333 !important; /* Garantir que as informações do arquivo sejam legíveis */
+}
+
+.file-info .file-name {
+  color: #333 !important;
+  font-weight: bold;
+}
+
+.file-info .file-size {
+  color: #666 !important;
+  font-size: 0.9rem;
+}
+
+.btn-remove {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilos para gravação de áudio */
+.audio-recording-preview {
+  padding: 1rem;
+  background: #fff3cd;
+  border-bottom: 1px solid #ffeaa7;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+.audio-recording-preview.hidden {
+  display: none;
+}
+
+.recording-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recording-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#recording-status {
+  color: #d63031;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.audio-preview {
+  padding: 1rem;
+  background: #e8f5e8;
+  border-bottom: 1px solid #b2dfb2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.audio-preview.hidden {
+  display: none;
+}
+
+.audio-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.audio-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#audio-player {
+  max-width: 300px;
+}
+
+/* Animação de pulsação para gravação */
+@keyframes pulse {
+  0% {
+    background-color: #fff3cd;
+  }
+  50% {
+    background-color: #ffeaa7;
+  }
+  100% {
+    background-color: #fff3cd;
+  }
+}
+
+/* Botão de gravação de áudio */
+#record-audio-btn {
+  transition: all 0.3s ease;
+}
+
+#record-audio-btn:hover {
+  background-color: #d63031;
+  color: white;
+  transform: scale(1.1);
+}
+
+#record-audio-btn.recording {
+  background-color: #d63031;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.input-toolbar {
+  padding: 1rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  background: #f8f9fa;
+  border: 1px solid #e1e5e9;
+  border-radius: 25px;
+  padding: 0.5rem;
+}
+
+.input-group input[type="text"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+/* Animações */
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar customizada */
+.messages::-webkit-scrollbar,
+.users-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages::-webkit-scrollbar-track,
+.users-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.messages::-webkit-scrollbar-thumb,
+.users-sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover,
+.users-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .room-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .room-details {
+    justify-content: center;
+  }
+
+  .room-content {
+    flex-direction: column;
+  }
+
+  .users-sidebar {
+    width: 100%;
+    max-height: 150px;
+    border-right: none;
+    border-bottom: 1px solid #e1e5e9;
+  }
+
+  .users-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .user-item {
+    flex-shrink: 0;
+    min-width: 120px;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+  .input-group {
+    flex-direction: column;
+    border-radius: 12px;
+  }
+
+  .input-group input[type="text"] {
+    width: 100%;
+  }
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  animation: slideIn 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.modal-content p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.modal-actions .btn {
+  width: auto;
+  min-width: 120px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =================== MODAIS PARA ANEXOS =================== */
+
+/* Modal de imagem */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.image-modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.image-modal-header {
+  padding: 1rem;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.image-modal-title {
+  font-weight: bold;
+  color: #333;
+}
+
+.image-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-modal-close:hover {
+  color: #333;
+}
+
+.image-modal-body {
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.image-modal-img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.image-modal-footer {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e1e5e9;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Modal de documento */
+.document-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.document-modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90vw;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.document-modal-header {
+  padding: 1rem;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.document-modal-title {
+  font-weight: bold;
+  color: #333;
+}
+
+.document-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.document-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.document-modal-close:hover {
+  color: #333;
+}
+
+.document-modal-body {
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+}
+
+.document-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.text-content {
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  background: #f8f9fa;
+  border: none;
+  outline: none;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

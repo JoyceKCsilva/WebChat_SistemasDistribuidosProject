@@ -1,8 +1,16 @@
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
+const fs = require("fs");
 
 class Database {
   constructor() {
+    // Garantir que a pasta data/ existe
+    const dataDir = path.join(__dirname, "../../data");
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+      console.log("Pasta data/ criada.");
+    }
+    
     const dbPath = path.join(__dirname, "../../data/forum.db");
     this.db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
