@@ -23,13 +23,13 @@
           </div>
         </div>
         <div class="room-actions">
-          <button
-            id="copy-room-code"
-            class="btn btn-sm"
-            title="Copiar código da sala"
-          >
-            📋
-          </button>
+         <button
+  id="copy-room-code"
+  class="btn btn-primary btn-sm d-flex align-items-center gap-1"
+  title="Copiar código da sala"
+>
+  📋 <span>Copiar</span>
+</button>
           <button id="leave-room" class="btn btn-sm btn-danger">Sair</button>
         </div>
       </header>
@@ -115,7 +115,7 @@
                 />
                 <button
                   id="attach-file-btn"
-                  class="btn btn-icon"
+                  class="btn btn-icon-arq"
                   title="Anexar arquivo"
                 >
                   📎
@@ -130,11 +130,13 @@
                 </button>
 
                 <input
-                  type="text"
-                  id="message-input"
-                  placeholder="Digite sua mensagem..."
-                  maxlength="1000"
-                />
+  type="text"
+  id="message-input"
+  class="chat-input"
+  placeholder="Digite sua mensagem..."
+  maxlength="1000"
+/>
+
 
                 <button id="send-message-btn" class="btn btn-primary" disabled>
                   Enviar

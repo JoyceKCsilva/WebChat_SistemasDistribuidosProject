@@ -122,15 +122,6 @@ body {
   cursor: not-allowed;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
 
 .btn-secondary {
   background: #6c757d;
@@ -143,13 +134,20 @@ body {
 }
 
 .btn-danger {
-  background: #e74c3c;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   color: white;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  transition: all 0.3s ease;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #c0392b;
+  background: linear-gradient(135deg, #ff6b61 0%, #d83b2d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
 }
+
 
 .btn-sm {
   padding: 8px 16px;
@@ -160,8 +158,8 @@ body {
 .btn-icon {
   width: auto;
   padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: #faf8f8;
+  border: 5px solid #dee2e6;
 }
 
 .btn-icon:hover {
