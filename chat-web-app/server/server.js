@@ -7,10 +7,14 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
 const Database = require("./database/database");
+const WebSocketMQTTBridge = require("./mqtt/websocketBridge");
 
 const app = express();
 const server = http.createServer(app);
 const db = new Database();
+
+// Inicializar bridge MQTT-WebSocket
+const bridge = new WebSocketMQTTBridge();
 
 // Configurações de middleware
 app.use(cors());
@@ -216,6 +220,33 @@ app.get("/api/rooms/:code/users", async (req, res) => {
   }
 });
 
+// Rota para status do sistema (incluindo MQTT)
+app.get("/api/system/status", (req, res) => {
+  try {
+    const stats = bridge.getStats();
+    res.json({
+      success: true,
+      system: {
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        timestamp: new Date().toISOString()
+      },
+      websocket: {
+        totalConnections: stats.totalConnections,
+        totalRooms: stats.totalRooms,
+        rooms: stats.roomsDetail
+      },
+      mqtt: stats.mqttStatus
+    });
+  } catch (error) {
+    console.error("Erro ao obter status do sistema:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro ao obter status do sistema"
+    });
+  }
+});
+
 // Upload de arquivos
 app.post("/api/upload", upload.single("file"), async (req, res) => {
   try {
@@ -264,7 +295,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// Configuração do WebSocket
+// Configuração do WebSocket com MQTT Bridge
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
@@ -345,9 +376,25 @@ async function handleJoinRoom(ws, data) {
       roomConnections.set(roomCode, []);
     }
 
+    const userId = data.userId || uuidv4();
     roomConnections.get(roomCode).push({
       ws: ws,
       username: username,
+      userId: userId
+    });
+
+    // Publicar evento de entrada via MQTT
+    bridge.mqttService.publishRoomUserEvent(roomCode, 'join', {
+      userId: userId,
+      username: username
+    });
+
+    // Publicar analytics via MQTT
+    bridge.mqttService.publishAnalytics({
+      event: 'user_joined_room',
+      roomId: roomCode,
+      userId: userId,
+      username: username
     });
 
     // Enviar histórico de mensagens
@@ -422,7 +469,29 @@ async function handleSendMessage(ws, data) {
       broadcastData.fileSize = fileSize;
     }
 
-    // Broadcast para todos na sala
+    // Publicar via MQTT para outros serviços/microserviços
+    if (messageType === "text") {
+      bridge.mqttService.publishRoomMessage(roomCode, {
+        id: data.id || uuidv4(),
+        userId: data.userId || username,
+        username: username,
+        message: message,
+        roomId: roomCode
+      });
+    } else if (messageType === "file") {
+      bridge.mqttService.publishRoomMessage(roomCode, {
+        id: data.id || uuidv4(),
+        userId: data.userId || username,
+        username: username,
+        fileName: fileName,
+        fileUrl: filePath,
+        fileType: messageType,
+        fileSize: fileSize,
+        roomId: roomCode
+      });
+    }
+
+    // Broadcast para todos na sala via WebSocket (mantendo compatibilidade)
     broadcastToRoom(roomCode, broadcastData);
   } catch (error) {
     console.error("Erro ao enviar mensagem:", error);
@@ -436,13 +505,31 @@ async function handleLeaveRoom(ws, data) {
     // Atualizar status no banco
     await db.updateUserStatus(username, roomCode, false);
 
-    // Remover da lista de conexões
+    // Encontrar dados do usuário antes de remover
+    let userId = null;
     if (roomConnections.has(roomCode)) {
       const connections = roomConnections.get(roomCode);
-      const index = connections.findIndex((conn) => conn.ws === ws);
-      if (index !== -1) {
-        connections.splice(index, 1);
+      const connectionIndex = connections.findIndex((conn) => conn.ws === ws);
+      if (connectionIndex !== -1) {
+        userId = connections[connectionIndex].userId;
+        connections.splice(connectionIndex, 1);
       }
+    }
+
+    // Publicar evento de saída via MQTT
+    if (userId) {
+      bridge.mqttService.publishRoomUserEvent(roomCode, 'leave', {
+        userId: userId,
+        username: username
+      });
+
+      // Publicar analytics via MQTT
+      bridge.mqttService.publishAnalytics({
+        event: 'user_left_room',
+        roomId: roomCode,
+        userId: userId,
+        username: username
+      });
     }
 
     // Notificar outros usuários
@@ -480,14 +567,41 @@ app.get("/room/:code", (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Servidor do Fórum rodando em http://localhost:${PORT}`);
-  console.log(`🔌 WebSocket server is running on ws://localhost:${PORT}`);
-});
+
+// Inicializar bridge MQTT antes de iniciar o servidor
+async function startServer() {
+  try {
+    console.log('🔄 Iniciando servidor...');
+    
+    // Tentar inicializar MQTT (não falha se não conseguir)
+    try {
+      await bridge.initialize();
+      console.log('✅ Bridge MQTT-WebSocket inicializado');
+    } catch (error) {
+      console.warn('⚠️ Continuando sem MQTT:', error.message);
+    }
+    
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Servidor do Fórum rodando em http://localhost:${PORT}`);
+      console.log(`🔌 WebSocket server is running on ws://localhost:${PORT}`);
+      if (bridge.mqttService.isConnected) {
+        console.log(`📡 MQTT Bridge ativo`);
+      } else {
+        console.log(`⚠️ MQTT não disponível - funcionando apenas com WebSocket`);
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erro ao inicializar servidor:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 // Graceful shutdown
-process.on("SIGINT", () => {
+process.on("SIGINT", async () => {
   console.log("Fechando servidor...");
+  await bridge.shutdown();
   db.close();
   process.exit(0);
 });
