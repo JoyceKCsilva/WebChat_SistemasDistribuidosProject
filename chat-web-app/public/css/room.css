@@ -35,6 +35,36 @@
   font-size: 0.9rem;
   opacity: 0.9;
   margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.room-owner {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.room-owner.is-current-user {
+  background: rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.room-code {
+  font-family: 'Courier New', monospace;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.user-count {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .room-actions {
@@ -173,6 +203,26 @@
 
 .message.received .username {
   color: #667eea !important;
+}
+
+/* Mensagens do proprietário */
+.message.owner-message {
+  border-left: 4px solid #ffd700;
+}
+
+.message.owner-message.received {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+}
+
+.message.owner-message .username {
+  color: #b8860b !important;
+  font-weight: 600;
+}
+
+.owner-badge {
+  display: inline-block;
+  margin-right: 0.25rem;
+  font-size: 0.9em;
 }
 
 .message .content {
@@ -895,6 +945,25 @@
   width: 100%;
   height: 100%;
   border: none;
+}
+
+/* Estilos específicos para usuários proprietários na lista */
+.user-item.owner-user {
+  background: linear-gradient(135deg, #fff8dc 0%, #f5f5dc 100%);
+  border: 1px solid #FFD700;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 4px;
+}
+
+.user-item.owner-user .user-name {
+  color: #B8860B !important;
+  font-weight: bold;
+}
+
+.user-item.owner-user:hover {
+  background: linear-gradient(135deg, #fffacd 0%, #f0e68c 100%);
+  border-color: #DAA520;
 }
 
 .text-content {

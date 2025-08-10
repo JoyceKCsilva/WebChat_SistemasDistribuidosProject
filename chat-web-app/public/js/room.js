@@ -6,6 +6,7 @@ class RoomChat {
     this.username = null;
     this.socket = null;
     this.selectedFile = null;
+    this.roomOwner = null; // Armazenar informações do proprietário
 
     // Propriedades para gravação de áudio
     this.mediaRecorder = null;
@@ -22,22 +23,37 @@ class RoomChat {
   }
 
   initializeFromSession() {
-    // Recuperar dados da sessão
+    // Primeiro tentar recuperar dados da sessão
     this.roomCode = sessionStorage.getItem("roomCode");
     this.username = sessionStorage.getItem("username");
 
-    // Verificar se temos os dados necessários
-    if (!this.roomCode || !this.username) {
-      // Redirecionar para a página inicial se não temos os dados
-      window.location.href = "/";
-      return;
+    // Se não temos dados da sessão, tentar obter do sistema de autenticação
+    if (!this.username) {
+      this.username = localStorage.getItem("username");
     }
 
-    // Também tentar obter do URL como fallback
+    // Obter roomCode da URL como fallback
     const urlPath = window.location.pathname;
     const urlRoomCode = urlPath.split("/").pop();
-    if (urlRoomCode && !this.roomCode) {
-      this.roomCode = urlRoomCode;
+    if (urlRoomCode && (!this.roomCode || this.roomCode.length !== 8)) {
+      this.roomCode = urlRoomCode.toUpperCase();
+    }
+
+    // Verificar se temos os dados necessários
+    if (!this.roomCode || !this.username) {
+      // Verificar se o usuário está autenticado
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        // Redirecionar para login se não está autenticado
+        window.location.href = "/login";
+        return;
+      }
+      
+      if (!this.roomCode) {
+        // Redirecionar para a página inicial se não temos código da sala
+        window.location.href = "/";
+        return;
+      }
     }
   }
 
@@ -45,9 +61,12 @@ class RoomChat {
     // Elementos do header
     this.roomNameElement = document.getElementById("room-name");
     this.roomCodeDisplay = document.getElementById("room-code-display");
+    this.roomOwnerInfo = document.getElementById("room-owner-info");
+    this.roomOwnerName = document.getElementById("room-owner-name");
     this.userCountElement = document.getElementById("user-count");
     this.copyRoomCodeBtn = document.getElementById("copy-room-code");
     this.leaveRoomBtn = document.getElementById("leave-room");
+    this.closeRoomBtn = document.getElementById("close-room");
 
     // Elementos da sidebar
     this.usersList = document.getElementById("users-list");
@@ -84,6 +103,19 @@ class RoomChat {
     this.leaveModal = document.getElementById("leave-modal");
     this.confirmLeaveBtn = document.getElementById("confirm-leave");
     this.cancelLeaveBtn = document.getElementById("cancel-leave");
+    this.closeModal = document.getElementById("close-modal");
+    this.confirmCloseBtn = document.getElementById("confirm-close");
+    this.cancelCloseBtn = document.getElementById("cancel-close");
+    
+    // Debug: verificar se elementos dos modais foram encontrados
+    console.log("Modal elements found:", {
+      leaveModal: !!this.leaveModal,
+      confirmLeaveBtn: !!this.confirmLeaveBtn,
+      cancelLeaveBtn: !!this.cancelLeaveBtn,
+      closeModal: !!this.closeModal,
+      confirmCloseBtn: !!this.confirmCloseBtn,
+      cancelCloseBtn: !!this.cancelCloseBtn
+    });
 
     // Notificações
     this.notification = document.getElementById("notification");
@@ -92,12 +124,96 @@ class RoomChat {
 
     // Atualizar UI inicial
     this.updateRoomInfo();
+    
+    // Função global para testes do console
+    window.testRoomAPI = () => this.testRoomAPI();
+  }
+  
+  async testRoomAPI() {
+    console.log("🧪 Iniciando teste da API da sala...");
+    
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('token');
+    console.log("🔑 Token disponível:", !!token);
+    
+    if (!token) {
+      console.error("❌ Nenhum token encontrado. Faça login primeiro.");
+      return;
+    }
+    
+    try {
+      // Teste 1: Status do sistema
+      console.log("🧪 Teste 1: Status do sistema");
+      const statusResponse = await fetch('/api/system/status');
+      console.log("✅ Status response:", statusResponse.status, await statusResponse.json());
+      
+      // Teste 2: Verificar token
+      console.log("🧪 Teste 2: Verificar token");
+      const authResponse = await fetch('/api/auth/verify', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      console.log("🔑 Auth response:", authResponse.status);
+      if (authResponse.ok) {
+        const authData = await authResponse.json();
+        console.log("🔑 Auth data:", authData);
+      }
+      
+      // Teste 3: Informações da sala
+      if (this.roomCode) {
+        console.log("🧪 Teste 3: Informações da sala");
+        const roomResponse = await fetch(`/api/rooms/${this.roomCode}`);
+        console.log("🏠 Room response:", roomResponse.status);
+        if (roomResponse.ok) {
+          const roomData = await roomResponse.json();
+          console.log("🏠 Room data:", roomData);
+        }
+      }
+      
+    } catch (error) {
+      console.error("🧪 Erro no teste:", error);
+    }
   }
 
   attachEventListeners() {
     // Eventos do header
     this.copyRoomCodeBtn.addEventListener("click", () => this.copyRoomCode());
-    this.leaveRoomBtn.addEventListener("click", () => this.showLeaveModal());
+    
+    // Botão sair da sala
+    this.leaveRoomBtn.addEventListener("click", async (e) => {
+      console.log("🚪 Leave room button clicked");
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Teste simples primeiro
+      console.log("🔍 Testando conectividade básica...");
+      try {
+        const testResponse = await fetch('/api/system/status');
+        console.log("🔍 Status test response:", testResponse.status);
+      } catch (error) {
+        console.error("🔍 Erro no teste básico:", error);
+      }
+      
+      this.showLeaveModal();
+    });
+    
+    // Botão fechar sala
+    this.closeRoomBtn.addEventListener("click", async (e) => {
+      console.log("🔒 Close room button clicked");
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Teste simples primeiro
+      console.log("🔍 Testando conectividade básica...");
+      try {
+        const testResponse = await fetch('/api/system/status');
+        console.log("🔍 Status test response:", testResponse.status);
+      } catch (error) {
+        console.error("🔍 Erro no teste básico:", error);
+      }
+      
+      this.showCloseModal();
+    });
 
     // Eventos de envio de mensagem
     this.sendMessageBtn.addEventListener("click", () => this.sendMessage());
@@ -131,9 +247,34 @@ class RoomChat {
     );
     this.cancelAudioBtn.addEventListener("click", () => this.cancelAudio());
 
-    // Eventos do modal
-    this.confirmLeaveBtn.addEventListener("click", () => this.leaveRoom());
-    this.cancelLeaveBtn.addEventListener("click", () => this.hideLeaveModal());
+    // Eventos do modal - com verificação de existência dos elementos
+    if (this.confirmLeaveBtn) {
+      this.confirmLeaveBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.leaveRoom();
+      });
+    }
+    
+    if (this.cancelLeaveBtn) {
+      this.cancelLeaveBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.hideLeaveModal();
+      });
+    }
+    
+    if (this.confirmCloseBtn) {
+      this.confirmCloseBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.closeRoom();
+      });
+    }
+    
+    if (this.cancelCloseBtn) {
+      this.cancelCloseBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.hideCloseModal();
+      });
+    }
 
     // Notificações
     this.closeNotificationBtn.addEventListener("click", () =>
@@ -157,6 +298,7 @@ class RoomChat {
       // Escape para fechar modal
       if (e.key === "Escape") {
         this.hideLeaveModal();
+        this.hideCloseModal();
       }
     });
   }
@@ -165,6 +307,69 @@ class RoomChat {
     if (this.roomCode) {
       this.roomCodeDisplay.textContent = this.roomCode;
       document.title = `Sala ${this.roomCode} - Fórum`;
+      
+      // Carregar informações detalhadas da sala
+      this.loadDetailedRoomInfo();
+    }
+  }
+
+  async loadDetailedRoomInfo() {
+    try {
+      const response = await fetch(`/api/rooms/${this.roomCode}`);
+      const result = await response.json();
+      
+      if (response.ok && result.room) {
+        const room = result.room;
+        
+        // Armazenar informações do proprietário
+        this.roomOwner = {
+          username: room.owner_username || room.created_by,
+          displayName: room.owner_display_name || room.created_by
+        };
+        
+        // Atualizar nome da sala
+        this.roomNameElement.textContent = room.room_name || `Sala ${room.room_code}`;
+        
+        // Atualizar informações do proprietário
+        if (this.roomOwnerName && room.owner_display_name) {
+          this.roomOwnerName.textContent = room.owner_display_name;
+          
+          // Destacar se o usuário atual é o proprietário
+          const isCurrentUserOwner = room.owner_username === this.username || room.created_by === this.username;
+          console.log("User ownership check:", {
+            currentUsername: this.username,
+            roomOwnerUsername: room.owner_username,
+            roomCreatedBy: room.created_by,
+            isCurrentUserOwner: isCurrentUserOwner
+          });
+          
+          if (isCurrentUserOwner) {
+            this.roomOwnerInfo.classList.add('is-current-user');
+            this.roomOwnerName.textContent += ' (Você)';
+            
+            // Mostrar botão "Fechar Sala" apenas para o proprietário
+            if (this.closeRoomBtn) {
+              this.closeRoomBtn.style.display = 'inline-block';
+            }
+            
+            // Esconder botão "Sair" para o proprietário
+            if (this.leaveRoomBtn) {
+              this.leaveRoomBtn.style.display = 'none';
+            }
+          } else {
+            // Para não proprietários, esconder botão fechar sala e mostrar botão sair
+            if (this.closeRoomBtn) {
+              this.closeRoomBtn.style.display = 'none';
+            }
+            
+            if (this.leaveRoomBtn) {
+              this.leaveRoomBtn.style.display = 'inline-block';
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar informações da sala:', error);
     }
   }
 
@@ -232,6 +437,12 @@ class RoomChat {
       case "user_left":
         this.onUserLeft(data);
         break;
+      case "users_list_updated":
+        this.onUsersListUpdated(data);
+        break;
+      case "room_closed":
+        this.onRoomClosed(data);
+        break;
       case "error":
         this.onError(data);
         break;
@@ -241,7 +452,7 @@ class RoomChat {
   }
 
   onJoinedRoom(data) {
-    this.roomNameElement.textContent = data.roomName || `Sala ${data.roomCode}`;
+    // As informações detalhadas da sala já foram carregadas em updateRoomInfo()
     this.showNotification("Conectado à sala com sucesso!", "success");
     this.loadRoomUsers();
   }
@@ -259,12 +470,35 @@ class RoomChat {
 
   onUserJoined(data) {
     this.showNotification(`${data.username} entrou na sala`, "success");
-    this.loadRoomUsers();
+    // A lista será atualizada via users_list_updated
   }
 
   onUserLeft(data) {
     this.showNotification(`${data.username} saiu da sala`, "warning");
-    this.loadRoomUsers();
+    // A lista será atualizada via users_list_updated
+  }
+
+  onUsersListUpdated(data) {
+    console.log("Lista de usuários atualizada via WebSocket:", data.users);
+    this.updateUsersList(data.users);
+  }
+
+  onRoomClosed(data) {
+    this.showNotification("Esta sala foi fechada pelo proprietário", "error");
+    
+    // Limpar dados da sessão
+    sessionStorage.removeItem("roomCode");
+    sessionStorage.removeItem("username");
+    
+    // Fechar conexão WebSocket
+    if (this.socket) {
+      this.socket.close();
+    }
+    
+    // Redirecionar para página inicial após 3 segundos
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 3000);
   }
 
   onError(data) {
@@ -298,12 +532,19 @@ class RoomChat {
 
     users.forEach((user) => {
       const userElement = document.createElement("div");
-      userElement.className = "user-item";
+      
+      // Verificar se é o proprietário
+      const isOwner = this.roomOwner && (user.username === this.roomOwner.username);
+      
+      userElement.className = `user-item${isOwner ? " owner-user" : ""}`;
+      
+      const ownerBadge = isOwner ? '<span class="owner-badge" title="Proprietário da sala">👑</span> ' : '';
+      
       userElement.innerHTML = `
                 <div class="user-status ${
                   user.is_online ? "online" : "offline"
                 }"></div>
-                <span class="user-name">${user.username}</span>
+                <span class="user-name">${ownerBadge}${user.username}</span>
             `;
       this.usersList.appendChild(userElement);
     });
@@ -328,9 +569,13 @@ class RoomChat {
 
   addMessage(data) {
     const messageElement = document.createElement("div");
+    
+    // Verificar se é mensagem do proprietário
+    const isOwner = this.roomOwner && (data.username === this.roomOwner.username);
+    
     messageElement.className = `message ${
       data.username === this.username ? "sent" : "received"
-    }`;
+    }${isOwner ? " owner-message" : ""}`;
 
     if (data.messageType === "file") {
       messageElement.classList.add("file");
@@ -342,8 +587,11 @@ class RoomChat {
       minute: "2-digit",
     });
 
+    // Adicionar ícone de coroa para o proprietário
+    const ownerBadge = isOwner ? '<span class="owner-badge" title="Proprietário da sala">👑</span>' : '';
+    
     let content = `
-            <div class="username">${data.username}</div>
+            <div class="username">${ownerBadge}${data.username}</div>
             <div class="content">${data.message}</div>
         `;
 
@@ -706,30 +954,150 @@ class RoomChat {
   }
 
   showLeaveModal() {
-    this.leaveModal.classList.add("show");
+    if (this.leaveModal) {
+      this.leaveModal.classList.add("show");
+    }
   }
 
   hideLeaveModal() {
-    this.leaveModal.classList.remove("show");
+    if (this.leaveModal) {
+      this.leaveModal.classList.remove("show");
+    }
   }
 
-  leaveRoom() {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(
-        JSON.stringify({
-          type: "leave_room",
-          roomCode: this.roomCode,
-          username: this.username,
-        })
-      );
+  showCloseModal() {
+    if (this.closeModal) {
+      this.closeModal.classList.add("show");
     }
+  }
 
-    // Limpar dados da sessão
-    sessionStorage.removeItem("roomCode");
-    sessionStorage.removeItem("username");
+  hideCloseModal() {
+    if (this.closeModal) {
+      this.closeModal.classList.remove("show");
+    }
+  }
 
-    // Redirecionar para a página inicial
-    window.location.href = "/";
+  async leaveRoom() {
+    try {
+      console.log("🚪 Iniciando processo de sair da sala...");
+      
+      // Buscar token do localStorage onde está sendo salvo
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('token');
+      
+      console.log("🔑 Token encontrado:", !!token);
+      console.log("🏠 Código da sala:", this.roomCode);
+      
+      if (!token) {
+        console.error("❌ Token não encontrado");
+        this.showNotification("Você precisa estar logado para sair da sala", "error");
+        return;
+      }
+      
+      const url = `/api/rooms/${this.roomCode}/leave`;
+      console.log("📡 Fazendo requisição para:", url);
+      
+      // Fazer chamada para a API para sair permanentemente
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log("📋 Status da resposta:", response.status);
+      console.log("📋 Headers da resposta:", Object.fromEntries(response.headers.entries()));
+      
+      const data = await response.json();
+      console.log("📦 Dados da resposta:", data);
+      
+      if (data.success) {
+        console.log("✅ Saída da sala bem-sucedida");
+        this.showNotification(data.message, "success");
+        
+        // Fechar conexão WebSocket
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+          this.socket.close();
+        }
+
+        // Limpar dados da sessão
+        sessionStorage.removeItem("roomCode");
+        sessionStorage.removeItem("username");
+
+        // Aguardar um pouco antes de redirecionar
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      } else {
+        console.error("❌ Erro ao sair da sala:", data.message);
+        this.showNotification(data.message, "error");
+        this.hideLeaveModal();
+      }
+    } catch (error) {
+      console.error("💥 Erro ao sair da sala:", error);
+      this.showNotification("Erro ao sair da sala", "error");
+      this.hideLeaveModal();
+    }
+  }
+
+  async closeRoom() {
+    try {
+      console.log("🔒 Iniciando processo de fechar sala...");
+      
+      // Buscar token do localStorage onde está sendo salvo
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('token');
+      
+      console.log("🔑 Token encontrado:", !!token);
+      console.log("🏠 Código da sala:", this.roomCode);
+      
+      if (!token) {
+        console.error("❌ Token não encontrado");
+        this.showNotification("Você precisa estar logado para fechar a sala", "error");
+        this.hideCloseModal();
+        return;
+      }
+      
+      const url = `/api/rooms/${this.roomCode}/close`;
+      console.log("📡 Fazendo requisição para:", url);
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log("📋 Status da resposta:", response.status);
+      console.log("📋 Headers da resposta:", Object.fromEntries(response.headers.entries()));
+      
+      const data = await response.json();
+      console.log("📦 Dados da resposta:", data);
+      
+      if (data.success) {
+        console.log("✅ Fechamento da sala bem-sucedido");
+        this.showNotification(data.message, "success");
+        
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+          this.socket.close();
+        }
+
+        sessionStorage.removeItem("roomCode");
+        sessionStorage.removeItem("username");
+
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      } else {
+        console.error("❌ Erro ao fechar sala:", data.message);
+        this.showNotification(data.message, "error");
+        this.hideCloseModal();
+      }
+    } catch (error) {
+      console.error("💥 Erro ao fechar sala:", error);
+      this.showNotification("Erro ao fechar sala", "error");
+      this.hideCloseModal();
+    }
   }
 
   showNotification(message, type = "success") {

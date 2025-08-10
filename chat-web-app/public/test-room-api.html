@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Direto - Sair/Fechar Sala</title>
+</head>
+<body>
+    <h1>Teste Direto das Funções</h1>
+    
+    <div>
+        <h3>Configuração:</h3>
+        <input type="text" id="roomCode" placeholder="Código da sala" value="LTPN7027">
+        <input type="text" id="token" placeholder="Token de autenticação">
+        <button id="getToken">Obter Token do LocalStorage</button>
+    </div>
+    
+    <div>
+        <h3>Testes:</h3>
+        <button id="testLeave">Testar Sair da Sala</button>
+        <button id="testClose">Testar Fechar Sala</button>
+    </div>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; min-height: 100px;"></div>
+
+    <script>
+        function log(message) {
+            const result = document.getElementById('result');
+            result.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            console.log(message);
+        }
+
+        document.getElementById('getToken').addEventListener('click', () => {
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('token');
+            document.getElementById('token').value = token || 'Token não encontrado';
+            log('Token recuperado: ' + (token ? 'Presente' : 'Ausente'));
+        });
+
+        document.getElementById('testLeave').addEventListener('click', async () => {
+            const roomCode = document.getElementById('roomCode').value;
+            const token = document.getElementById('token').value;
+            
+            log('🚪 Iniciando teste de sair da sala...');
+            log('Sala: ' + roomCode);
+            log('Token: ' + (token ? 'Presente' : 'Ausente'));
+            
+            try {
+                const response = await fetch(`/api/rooms/${roomCode}/leave`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                log('Status da resposta: ' + response.status);
+                
+                const data = await response.json();
+                log('Resposta: ' + JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                log('ERRO: ' + error.message);
+            }
+        });
+
+        document.getElementById('testClose').addEventListener('click', async () => {
+            const roomCode = document.getElementById('roomCode').value;
+            const token = document.getElementById('token').value;
+            
+            log('🔒 Iniciando teste de fechar sala...');
+            log('Sala: ' + roomCode);
+            log('Token: ' + (token ? 'Presente' : 'Ausente'));
+            
+            try {
+                const response = await fetch(`/api/rooms/${roomCode}/close`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                log('Status da resposta: ' + response.status);
+                
+                const data = await response.json();
+                log('Resposta: ' + JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                log('ERRO: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

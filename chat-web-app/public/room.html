@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sala do Fórum</title>
-    <link rel="stylesheet" href="../css/style.css" />
-    <link rel="stylesheet" href="../css/room.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/room.css" />
   </head>
   <body>
     <div class="room-container">
@@ -17,6 +17,9 @@
             <span class="room-code"
               >Código: <strong id="room-code-display"></strong
             ></span>
+            <span class="room-owner" id="room-owner-info">
+              👑 Proprietário: <strong id="room-owner-name">Carregando...</strong>
+            </span>
             <span class="user-count"
               >👥 <span id="user-count">0</span> usuários</span
             >
@@ -30,6 +33,7 @@
 >
   📋 <span>Copiar</span>
 </button>
+          <button id="close-room" class="btn btn-sm btn-danger" style="display: none;">Fechar Sala</button>
           <button id="leave-room" class="btn btn-sm btn-danger">Sair</button>
         </div>
       </header>
@@ -160,6 +164,18 @@
       </div>
     </div>
 
+    <!-- Modal de confirmação para fechar sala -->
+    <div id="close-modal" class="modal">
+      <div class="modal-content">
+        <h3>⚠️ Fechar sala permanentemente?</h3>
+        <p>Esta ação é <strong>irreversível</strong>! A sala será fechada para todos os usuários e não poderá ser recuperada.</p>
+        <div class="modal-actions">
+          <button id="confirm-close" class="btn btn-danger">Sim, fechar permanentemente</button>
+          <button id="cancel-close" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Notificações -->
     <div id="notification" class="notification hidden">
       <span id="notification-text"></span>
@@ -167,6 +183,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="../js/room.js"></script>
+    <script src="/js/room.js"></script>
   </body>
 </html>

@@ -9,28 +9,9 @@
   <body>
     <div class="main-container">
       <header class="header">
-        <div class="header-content">
-          <div class="header-title">
-            <h1>🏛️ Fórum Web</h1>
-            <p>Suas salas de discussão</p>
-          </div>
-          <div class="user-info">
-            <span id="user-display-name">Carregando...</span>
-            <button id="logout-btn" class="btn btn-logout">Sair</button>
-          </div>
-        </div>
+        <h1>🏛️ Fórum Web</h1>
+        <p>Conecte-se com pessoas em salas de discussão privadas</p>
       </header>
-
-      <!-- Seção de minhas salas -->
-      <section class="my-rooms-section">
-        <h2>📝 Minhas Salas</h2>
-        <div id="rooms-list" class="rooms-grid">
-          <div class="loading-rooms">
-            <div class="spinner"></div>
-            <p>Carregando suas salas...</p>
-          </div>
-        </div>
-      </section>
 
       <div class="action-cards">
         <!-- Card para criar nova sala -->
@@ -45,6 +26,16 @@
               id="room-name"
               placeholder="Nome da sala"
               maxlength="50"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              id="creator-name"
+              placeholder="Seu nome"
+              maxlength="30"
               required
             />
           </div>
@@ -71,26 +62,24 @@
             />
           </div>
 
+          <div class="form-group">
+            <input
+              type="text"
+              id="user-name"
+              placeholder="Seu nome"
+              maxlength="30"
+              required
+            />
+          </div>
+
           <button id="join-room-btn" class="btn btn-secondary">
             Entrar na Sala
           </button>
         </div>
       </div>
 
-      <!-- Modal de confirmação -->
-      <div id="confirmation-modal" class="modal hidden">
-        <div class="modal-content">
-          <h3 id="modal-title">Confirmar ação</h3>
-          <p id="modal-message">Tem certeza que deseja continuar?</p>
-          <div class="modal-actions">
-            <button id="modal-cancel" class="btn btn-secondary">Cancelar</button>
-            <button id="modal-confirm" class="btn btn-primary">Confirmar</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal para código da sala criada -->
-      <div id="room-code-modal" class="modal hidden">
+      <!-- Modal para exibir código da sala criada -->
+      <div id="room-code-modal" class="modal">
         <div class="modal-content">
           <h3>🎉 Sala criada com sucesso!</h3>
           <div class="room-code-display">
@@ -117,15 +106,25 @@
         </div>
       </div>
 
-      <!-- Loading overlay -->
-      <div id="loading-overlay" class="loading-overlay hidden">
+      <!-- Loading spinner -->
+      <div id="loading-spinner" class="loading hidden">
         <div class="spinner"></div>
         <p>Processando...</p>
       </div>
 
-      <!-- Toast notifications -->
-      <div id="toast-container" class="toast-container"></div>
+      <!-- Notificações -->
+      <div id="notification" class="notification hidden">
+        <span id="notification-text"></span>
+        <button id="close-notification">×</button>
+      </div>
     </div>
+
+    <footer class="footer">
+      <p>
+        💡 Dica: Mantenha o código da sala em segurança para controlar quem pode
+        entrar
+      </p>
+    </footer>
 
     <script src="js/main.js"></script>
   </body>

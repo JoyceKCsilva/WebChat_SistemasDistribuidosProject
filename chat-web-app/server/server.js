@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -6,6 +7,8 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const Database = require("./database/database");
 const WebSocketMQTTBridge = require("./mqtt/websocketBridge");
 
@@ -20,6 +23,15 @@ const bridge = new WebSocketMQTTBridge();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
+
+// Middleware para logar todas as requisições
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.url} - ${new Date().toISOString()}`);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log("📦 Body:", req.body);
+  }
+  next();
+});
 
 // Rate limiting
 const limiter = rateLimit({
@@ -96,20 +108,189 @@ const upload = multer({
 // Armazenamento de conexões WebSocket por sala
 const roomConnections = new Map();
 
+// Middleware de autenticação
+function authenticateToken(req, res, next) {
+  console.log("🔐 [AUTH] Verificando autenticação...");
+  console.log("🔐 [AUTH] Headers:", req.headers);
+  
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  console.log("🔐 [AUTH] Auth header:", authHeader);
+  console.log("🔐 [AUTH] Token extraído:", token ? "Presente" : "Ausente");
+
+  if (!token) {
+    console.log("🔐 [AUTH] Token não fornecido");
+    return res.status(401).json({ message: 'Token de acesso requerido' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      console.log("🔐 [AUTH] Token inválido:", err.message);
+      return res.status(403).json({ message: 'Token inválido' });
+    }
+    console.log("🔐 [AUTH] Token válido, usuário:", user);
+    req.user = user;
+    next();
+  });
+}
+
 // Função para gerar código de sala único
 function generateRoomCode() {
   return Math.random().toString(36).substr(2, 8).toUpperCase();
 }
 
+// Rotas de Autenticação
+
+// Registro de usuário
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { username, password, email, displayName } = req.body;
+
+    // Validações básicas
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Nome de usuário e senha são obrigatórios' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres' });
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return res.status(400).json({ message: 'Nome de usuário deve conter apenas letras, números e underscore' });
+    }
+
+    // Verificar se o usuário já existe
+    const existingUser = await db.getUserByUsername(username);
+    if (existingUser) {
+      return res.status(409).json({ message: 'Nome de usuário já está em uso' });
+    }
+
+    // Hash da senha
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Criar usuário
+    const user = await db.createUser(username, passwordHash, email, displayName);
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuário criado com sucesso',
+      user: {
+        id: user.id,
+        username: user.username,
+        display_name: user.displayName
+      }
+    });
+  } catch (error) {
+    console.error('Erro no registro:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
+// Login de usuário
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Nome de usuário e senha são obrigatórios' });
+    }
+
+    // Buscar usuário
+    const user = await db.getUserByUsername(username);
+    if (!user) {
+      return res.status(401).json({ message: 'Credenciais inválidas' });
+    }
+
+    // Verificar senha
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Credenciais inválidas' });
+    }
+
+    // Atualizar último login
+    await db.updateLastLogin(username);
+
+    // Gerar token JWT
+    const token = jwt.sign(
+      { 
+        username: user.username, 
+        displayName: user.display_name 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN }
+    );
+
+    res.json({
+      success: true,
+      message: 'Login realizado com sucesso',
+      token,
+      user: {
+        username: user.username,
+        display_name: user.display_name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Erro no login:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
+// Verificar token
+app.get("/api/auth/verify", authenticateToken, async (req, res) => {
+  try {
+    const user = await db.getUserByUsername(req.user.username);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        username: user.username,
+        display_name: user.display_name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Erro na verificação:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
+// Logout
+app.post("/api/auth/logout", authenticateToken, (req, res) => {
+  // No JWT, o logout é feito no cliente removendo o token
+  res.json({ success: true, message: 'Logout realizado com sucesso' });
+});
+
+// Obter salas do usuário
+app.get("/api/user/rooms", authenticateToken, async (req, res) => {
+  try {
+    const rooms = await db.getUserRooms(req.user.username);
+    res.json({ success: true, rooms });
+  } catch (error) {
+    console.error('Erro ao buscar salas do usuário:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
 // Rotas da API
 
 // Criar nova sala
-app.post("/api/rooms", async (req, res) => {
+app.post("/api/rooms", authenticateToken, async (req, res) => {
   try {
-    const { roomName, createdBy } = req.body;
+    const { roomName } = req.body;
     const roomCode = generateRoomCode();
+    const username = req.user.username;
+    const displayName = req.user.displayName;
 
-    const room = await db.createRoom(roomCode, roomName, createdBy);
+    const room = await db.createRoom(roomCode, roomName, displayName, username);
+    
+    // Adicionar o criador como participante permanente
+    await db.addRoomParticipant(roomCode, username, true);
 
     res.json({
       success: true,
@@ -152,6 +333,172 @@ app.get("/api/rooms/:code", async (req, res) => {
   }
 });
 
+// Entrar em uma sala
+app.post("/api/rooms/:code/join", authenticateToken, async (req, res) => {
+  try {
+    const { code } = req.params;
+    const username = req.user.username;
+
+    // Verificar se a sala existe
+    const room = await db.getRoomByCode(code);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Sala não encontrada",
+      });
+    }
+
+    // Adicionar usuário como participante permanente (ficará no histórico)
+    await db.addRoomParticipant(code, username, true);
+
+    res.json({
+      success: true,
+      message: "Entrou na sala com sucesso",
+      room: room
+    });
+  } catch (error) {
+    console.error("Erro ao entrar na sala:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor",
+    });
+  }
+});
+
+// Sair permanentemente de uma sala
+app.post("/api/rooms/:code/leave", authenticateToken, async (req, res) => {
+  try {
+    console.log("🚪 [LEAVE ROOM] Requisição recebida");
+    console.log("🚪 [LEAVE ROOM] Parâmetros:", req.params);
+    console.log("🚪 [LEAVE ROOM] Usuário:", req.user);
+    
+    const { code } = req.params;
+    const username = req.user.username;
+
+    console.log(`🚪 [LEAVE ROOM] Usuário ${username} tentando sair da sala ${code}`);
+
+    // Verificar se a sala existe
+    const room = await db.getRoomByCode(code);
+    if (!room) {
+      console.log("🚪 [LEAVE ROOM] Sala não encontrada");
+      return res.status(404).json({
+        success: false,
+        message: "Sala não encontrada",
+      });
+    }
+
+    console.log("🚪 [LEAVE ROOM] Sala encontrada:", room);
+
+    // Verificar se é o dono da sala
+    const isOwner = (room.owner_username === username) || (room.created_by === username);
+    console.log("🚪 [LEAVE ROOM] É proprietário?", isOwner);
+    
+    if (isOwner) {
+      console.log("🚪 [LEAVE ROOM] Proprietário não pode sair, deve fechar a sala");
+      return res.status(403).json({
+        success: false,
+        message: "O dono da sala não pode sair. Use a opção 'Fechar Sala' para encerrar definitivamente.",
+      });
+    }
+
+    console.log("🚪 [LEAVE ROOM] Removendo usuário da sala...");
+    // Remover usuário da sala
+    await db.removeUserFromRoom(code, username);
+
+    console.log("🚪 [LEAVE ROOM] Fazendo broadcast da lista de usuários...");
+    // Fazer broadcast da lista atualizada de usuários
+    await broadcastUsersList(code);
+
+    console.log("🚪 [LEAVE ROOM] Usuário removido com sucesso");
+    res.json({
+      success: true,
+      message: "Saiu da sala permanentemente",
+    });
+  } catch (error) {
+    console.error("🚪 [LEAVE ROOM] Erro ao sair da sala:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor",
+    });
+  }
+});
+
+// Fechar sala (apenas para o dono)
+app.post("/api/rooms/:code/close", authenticateToken, async (req, res) => {
+  try {
+    console.log("🔒 [CLOSE ROOM] Requisição recebida");
+    console.log("🔒 [CLOSE ROOM] Parâmetros:", req.params);
+    console.log("🔒 [CLOSE ROOM] Usuário:", req.user);
+    
+    const { code } = req.params;
+    const username = req.user.username;
+    
+    console.log(`🔒 [CLOSE ROOM] Usuário ${username} tentando fechar a sala ${code}`);
+
+    // Verificar se a sala existe
+    const room = await db.getRoomByCode(code);
+    console.log("🔒 [CLOSE ROOM] Sala encontrada:", room);
+    if (!room) {
+      console.log("🔒 [CLOSE ROOM] Sala não encontrada");
+      return res.status(404).json({
+        success: false,
+        message: "Sala não encontrada",
+      });
+    }
+
+    // Verificar se é o dono da sala
+    const isOwner = (room.owner_username === username) || (room.created_by === username);
+    console.log("[CLOSE ROOM] É proprietário?", isOwner, "| owner_username:", room.owner_username, "| created_by:", room.created_by);
+    if (!isOwner) {
+      console.log("[CLOSE ROOM] Usuário não é proprietário");
+      return res.status(403).json({
+        success: false,
+        message: "Apenas o dono da sala pode fechá-la",
+      });
+    }
+
+    console.log("[CLOSE ROOM] Notificando usuários da sala...");
+    // Notificar todos os usuários que a sala foi fechada
+    broadcastToRoom(code, {
+      type: "room_closed",
+      message: "Esta sala foi fechada pelo proprietário"
+    });
+
+    // Fechar todas as conexões WebSocket da sala
+    if (roomConnections.has(code)) {
+      const connections = roomConnections.get(code);
+      console.log("[CLOSE ROOM] Fechando", connections.size, "conexões WebSocket");
+      connections.forEach(connection => {
+        if (connection.ws.readyState === WebSocket.OPEN) {
+          connection.ws.send(JSON.stringify({
+            type: "room_closed",
+            message: "Esta sala foi fechada pelo proprietário"
+          }));
+          connection.ws.close();
+        }
+      });
+      roomConnections.delete(code);
+    }
+
+    console.log("[CLOSE ROOM] Deletando sala do banco de dados...");
+    // Fechar sala no banco de dados
+    const result = await db.deleteRoom(code, username);
+    console.log("[CLOSE ROOM] Resultado da deleção:", result);
+
+    console.log("[CLOSE ROOM] Sala fechada com sucesso");
+    res.json({
+      success: true,
+      message: "Sala fechada com sucesso",
+    });
+  } catch (error) {
+    console.error("[CLOSE ROOM] Erro ao fechar sala:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor",
+    });
+  }
+});
+
 // Buscar mensagens da sala
 app.get("/api/rooms/:code/messages", async (req, res) => {
   try {
@@ -185,31 +532,32 @@ app.get("/api/rooms/:code/users", async (req, res) => {
       });
     }
 
-    // Buscar apenas usuários que estão realmente online (com conexões WebSocket ativas)
-    const onlineUsers = [];
+    // Buscar todos os participantes da sala
+    const participants = await db.getRoomParticipants(code);
+    
+    // Verificar status online para cada participante
+    const onlineUsernames = new Set();
     if (roomConnections.has(code)) {
       const connections = roomConnections.get(code);
       connections.forEach((conn) => {
-        if (conn.ws.readyState === 1) {
-          // WebSocket.OPEN
-          // Verificar se o usuário já não está na lista (evitar duplicatas)
-          const existingUser = onlineUsers.find(
-            (user) => user.username === conn.username
-          );
-          if (!existingUser) {
-            onlineUsers.push({
-              username: conn.username,
-              is_online: true,
-              room_code: code,
-            });
-          }
+        if (conn.ws.readyState === 1) { // WebSocket.OPEN
+          onlineUsernames.add(conn.username);
         }
       });
     }
 
+    // Mapear participantes com status online/offline
+    const users = participants.map(participant => ({
+      username: participant.username,
+      display_name: participant.display_name || participant.username,
+      is_online: onlineUsernames.has(participant.username),
+      room_code: code,
+      is_permanent_member: participant.is_permanent_member
+    }));
+
     res.json({
       success: true,
-      users: onlineUsers,
+      users: users,
     });
   } catch (error) {
     console.error("Erro ao buscar usuários:", error);
@@ -346,6 +694,9 @@ wss.on("connection", (ws) => {
           username: connection.username,
         });
 
+        // Fazer broadcast da lista atualizada de usuários
+        broadcastUsersList(roomCode);
+
         break;
       }
     }
@@ -368,8 +719,14 @@ async function handleJoinRoom(ws, data) {
       return;
     }
 
-    // Adicionar usuário à sala
+    // Adicionar usuário à sala (mantém compatibilidade)
     await db.addUser(username, roomCode);
+    
+    // Adicionar como participante permanente para aparecer no histórico
+    await db.addRoomParticipant(roomCode, username, true);
+    
+    // Marcar usuário como online
+    await db.updateUserStatus(username, roomCode, true);
 
     // Adicionar conexão WebSocket
     if (!roomConnections.has(roomCode)) {
@@ -424,6 +781,9 @@ async function handleJoinRoom(ws, data) {
         roomName: room.room_name,
       })
     );
+
+    // Fazer broadcast da lista atualizada de usuários
+    await broadcastUsersList(roomCode);
   } catch (error) {
     console.error("Erro ao entrar na sala:", error);
     ws.send(
@@ -537,6 +897,9 @@ async function handleLeaveRoom(ws, data) {
       type: "user_left",
       username: username,
     });
+
+    // Fazer broadcast da lista atualizada de usuários
+    await broadcastUsersList(roomCode);
   } catch (error) {
     console.error("Erro ao sair da sala:", error);
   }
@@ -547,8 +910,8 @@ function broadcastToRoom(roomCode, message, excludeWs = null) {
     const connections = roomConnections.get(roomCode);
     connections.forEach((connection) => {
       if (
-        connection.ws !== excludeWs &&
-        connection.ws.readyState === WebSocket.OPEN
+        connection.ws.readyState === WebSocket.OPEN &&
+        (excludeWs === null || connection.ws !== excludeWs)
       ) {
         connection.ws.send(JSON.stringify(message));
       }
@@ -556,17 +919,60 @@ function broadcastToRoom(roomCode, message, excludeWs = null) {
   }
 }
 
-// Servir página inicial
+// Rota para página de login
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/login.html"));
+});
+
+// Servir página inicial (requer autenticação)
 app.get("/", (req, res) => {
+  // Em uma aplicação real, você verificaria o cookie/token aqui
+  // Por enquanto, vamos servir a página e deixar o JavaScript do cliente verificar
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// Servir página da sala
+// Servir página da sala (requer autenticação)
 app.get("/room/:code", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/room.html"));
 });
 
 const PORT = process.env.PORT || 8080;
+
+// Função para fazer broadcast da lista atualizada de usuários
+async function broadcastUsersList(roomCode) {
+  try {
+    // Buscar todos os participantes da sala
+    const participants = await db.getRoomParticipants(roomCode);
+    
+    // Verificar status online para cada participante
+    const onlineUsernames = new Set();
+    if (roomConnections.has(roomCode)) {
+      const connections = roomConnections.get(roomCode);
+      connections.forEach((conn) => {
+        if (conn.ws.readyState === 1) { // WebSocket.OPEN
+          onlineUsernames.add(conn.username);
+        }
+      });
+    }
+
+    // Mapear participantes com status online/offline
+    const users = participants.map(participant => ({
+      username: participant.username,
+      display_name: participant.display_name || participant.username,
+      is_online: onlineUsernames.has(participant.username),
+      room_code: roomCode,
+      is_permanent_member: participant.is_permanent_member
+    }));
+
+    // Fazer broadcast para todos os usuários da sala (incluindo o próprio usuário)
+    broadcastToRoom(roomCode, {
+      type: "users_list_updated",
+      users: users,
+    }, null); // null = não excluir ninguém
+  } catch (error) {
+    console.error("Erro ao fazer broadcast da lista de usuários:", error);
+  }
+}
 
 // Inicializar bridge MQTT antes de iniciar o servidor
 async function startServer() {

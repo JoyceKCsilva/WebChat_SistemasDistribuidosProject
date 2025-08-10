@@ -140,7 +140,6 @@ class MainApp {
     }
 
     renderRooms() {
-        console.log('Renderizando salas:', this.rooms);
         const roomsList = document.getElementById('rooms-list');
         
         if (this.rooms.length === 0) {
@@ -153,7 +152,7 @@ class MainApp {
         }
 
         roomsList.innerHTML = this.rooms.map(room => `
-            <div class="room-card" data-room-code="${room.room_code}" onclick="mainApp.enterRoom('${room.room_code}')">
+            <div class="room-card" data-room-code="${room.room_code}">
                 <div class="room-card-header">
                     <h3 class="room-name">${this.escapeHtml(room.room_name)}</h3>
                     ${room.is_owner ? '<span class="room-owner-badge">Dono</span>' : ''}
@@ -162,7 +161,7 @@ class MainApp {
                 <div class="room-info">
                     <small>Criada em: ${new Date(room.created_at).toLocaleDateString('pt-BR')}</small>
                 </div>
-                <div class="room-actions" onclick="event.stopPropagation()">
+                <div class="room-actions">
                     <button class="btn-small btn-enter" onclick="mainApp.enterRoom('${room.room_code}')">
                         Entrar
                     </button>
@@ -240,11 +239,6 @@ class MainApp {
             const result = await response.json();
 
             if (response.ok) {
-                // Salvar informações necessárias no sessionStorage
-                sessionStorage.setItem('roomCode', roomCode);
-                sessionStorage.setItem('username', this.user.username);
-                sessionStorage.setItem('displayName', this.user.display_name);
-                
                 // Entrar na sala
                 window.location.href = `/room/${roomCode}`;
             } else {
@@ -259,19 +253,6 @@ class MainApp {
     }
 
     enterRoom(roomCode) {
-        console.log('Tentando entrar na sala:', roomCode);
-        
-        // Salvar informações necessárias no sessionStorage para a página da sala
-        sessionStorage.setItem('roomCode', roomCode);
-        sessionStorage.setItem('username', this.user.username);
-        sessionStorage.setItem('displayName', this.user.display_name);
-        
-        console.log('Dados salvos no sessionStorage:', {
-            roomCode: sessionStorage.getItem('roomCode'),
-            username: sessionStorage.getItem('username'),
-            displayName: sessionStorage.getItem('displayName')
-        });
-        
         window.location.href = `/room/${roomCode}`;
     }
 
@@ -389,11 +370,6 @@ class MainApp {
 
     enterCreatedRoom() {
         if (this.generatedRoomCode) {
-            // Salvar informações necessárias no sessionStorage
-            sessionStorage.setItem('roomCode', this.generatedRoomCode);
-            sessionStorage.setItem('username', this.user.username);
-            sessionStorage.setItem('displayName', this.user.display_name);
-            
             window.location.href = `/room/${this.generatedRoomCode}`;
         }
     }
