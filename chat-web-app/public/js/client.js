@@ -1,4 +1,4 @@
-const socket = new WebSocket('ws://localhost:3000');
+const socket = new WebSocket(`ws://${window.location.hostname}:8080`);
 
 const usernameInput = document.getElementById('username');
 const messageInput = document.getElementById('message');

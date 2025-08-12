@@ -1,8 +1,22 @@
-# 🏛️ Fórum Web - Sistema de Chat Avançado com Salas
+# 💻 CodeRoom - Sistema de Chat Colaborativo Moderno
 
-Sistema de fórum web moderno que permite criar salas privadas de chat em tempo real, com recursos avançados de mídia, upload de arquivos, gravação de áudio, visualização rica de anexos e gerenciamento de usuários online.
+CodeRoom é uma plataforma moderna de salas de chat colaborativo em tempo real, projetada especialmente para desenvolvedores e equipes que precisam de comunicação eficiente e organizada. Com design contemporâneo inspirado no Telegram e interface responsiva.
 
 ---
+
+## ✨ Características Modernas
+
+### 🎨 Design Contemporâneo
+- **Interface Escura**: Tema dark moderno que reduz o cansaço visual
+- **Design System**: Sistema de cores e componentes consistente
+- **Animações Suaves**: Transições e micro-interações elegantes
+- **Tipografia Otimizada**: Fontes system para melhor legibilidade
+
+### 📱 Responsividade Total
+- **Mobile-First**: Projetado primeiro para dispositivos móveis
+- **Breakpoints Inteligentes**: Adaptação perfeita para qualquer tela
+- **Touch-Friendly**: Controles otimizados para toque
+- **Performance**: Carregamento rápido em qualquer conexão
 
 ## ✨ Funcionalidades Principais
 
@@ -13,10 +27,10 @@ Sistema de fórum web moderno que permite criar salas privadas de chat em tempo 
 - **Gravação de Áudio**: Grave e envie mensagens de áudio direto do navegador.
 - **Visualização de Mídia**: Preview e modais para imagens, vídeos, áudios, PDFs e textos.
 - **Lista de Usuários Online**: Sidebar mostra quem está conectado na sala.
-- **Notificações Visuais**: Feedback para ações e erros.
+- **Notificações Visuais**: Sistema de toast notifications moderno.
 - **Cópia de Código da Sala**: Botão para copiar o código e compartilhar.
-- **Responsividade**: Interface adaptada para desktop e mobile.
-- **Confirmação de Saída**: Modal para evitar saídas acidentais.
+- **Interface Responsiva**: Design adaptado perfeitamente para desktop, tablet e mobile.
+- **Confirmação de Ações**: Modais para evitar ações acidentais.
 - **Analytics em Tempo Real**: Métricas via MQTT (quando disponível).
 - **Fallback Gracioso**: Sistema funciona com ou sem MQTT.
 

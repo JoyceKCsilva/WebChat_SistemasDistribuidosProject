@@ -1,7 +1,7 @@
 {
-  "name": "forum-web-app",
+  "name": "coderoom-app",
   "version": "2.1.0",
-  "description": "Sistema de fórum web avançado com salas de chat em tempo real, gravação de áudio, visualização rica de mídia e upload de arquivos. Desenvolvido com WebSockets, MediaRecorder API e interface moderna.",
+  "description": "CodeRoom - Sistema de salas de chat em tempo real com design moderno, gravação de áudio, visualização rica de mídia e upload de arquivos. Desenvolvido com WebSockets, MediaRecorder API e interface contemporânea.",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
