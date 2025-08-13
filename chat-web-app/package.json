@@ -1,14 +1,65 @@
 {
-  "name": "chat-web-app",
-  "version": "1.0.0",
-  "description": "A simple chat application using WebSocket for real-time communication.",
+  "name": "coderoom-app",
+  "version": "2.1.0",
+  "description": "CodeRoom - Sistema de salas de chat em tempo real com design moderno, gravação de áudio, visualização rica de mídia e upload de arquivos. Desenvolvido com WebSockets, MediaRecorder API e interface contemporânea.",
   "main": "server/server.js",
   "scripts": {
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test-mqtt": "node test-mqtt.js"
   },
+  "keywords": [
+    "chat",
+    "forum",
+    "websocket",
+    "real-time",
+    "audio-recording",
+    "file-upload",
+    "node.js",
+    "express",
+    "sqlite",
+    "media-sharing",
+    "sistemas-distribuidos"
+  ],
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "mqtt": "^5.14.0",
+    "multer": "1.4.4-lts.1",
+    "sqlite3": "^5.1.6",
+    "uuid": "^9.0.0",
     "ws": "^8.0.0"
   },
-  "author": "",
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoyceKCsilva/WebChat_SistemasDistribuidosProject.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JoyceKCsilva/WebChat_SistemasDistribuidosProject/issues"
+  },
+  "homepage": "https://github.com/JoyceKCsilva/WebChat_SistemasDistribuidosProject#readme",
+  "author": {
+    "name": "Joyce KC Silva",
+    "email": "joyce.silva@example.com",
+    "url": "https://github.com/JoyceKCsilva"
+  },
+  "contributors": [
+    {
+      "name": "Contribuidores",
+      "url": "https://github.com/JoyceKCsilva/WebChat_SistemasDistribuidosProject/contributors"
+    }
+  ],
   "license": "ISC"
 }

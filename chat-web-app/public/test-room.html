@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Room.js</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Carregamento do room.js</h1>
+    
+    <div class="debug">
+        <h3>🔍 Status de Carregamento:</h3>
+        <p id="script-status">Verificando...</p>
+    </div>
+
+    <div class="debug">
+        <h3>🎯 Elementos Encontrados:</h3>
+        <div id="elements-status"></div>
+    </div>
+
+    <div class="debug">
+        <h3>📝 Logs do Console:</h3>
+        <div id="console-logs"></div>
+    </div>
+
+    <!-- Simular elementos que o room.js espera encontrar -->
+    <div style="display: none;">
+        <div id="room-name"></div>
+        <div id="room-code-display"></div>
+        <div id="room-owner-info"></div>
+        <div id="room-owner-name"></div>
+        <div id="user-count"></div>
+        <button id="copy-room-code"></button>
+        <button id="leave-room">Sair</button>
+        <button id="close-room">Fechar Sala</button>
+        <div id="users-list"></div>
+        <div id="messages-container"></div>
+        <div id="loading-messages"></div>
+        <div id="messages"></div>
+        <input id="file-input" type="file">
+        <button id="attach-file-btn"></button>
+        <div id="file-preview"></div>
+        <div id="file-name"></div>
+        <button id="remove-file"></button>
+        <input id="message-input" type="text">
+        <button id="send-message-btn"></button>
+        <button id="record-audio-btn"></button>
+        <div id="audio-recording-preview"></div>
+        <div id="recording-time"></div>
+        <button id="stop-recording"></button>
+        <button id="cancel-recording"></button>
+        <div id="audio-preview"></div>
+        <audio id="audio-player"></audio>
+        <button id="send-audio"></button>
+        <button id="re-record-audio"></button>
+        <button id="cancel-audio"></button>
+        
+        <!-- Modais -->
+        <div id="leave-modal" class="modal">
+            <div class="modal-content">
+                <button id="confirm-leave"></button>
+                <button id="cancel-leave"></button>
+            </div>
+        </div>
+        <div id="close-modal" class="modal">
+            <div class="modal-content">
+                <button id="confirm-close"></button>
+                <button id="cancel-close"></button>
+            </div>
+        </div>
+        
+        <!-- Notificações -->
+        <div id="notification"></div>
+        <span id="notification-text"></span>
+        <button id="close-notification"></button>
+    </div>
+
+    <script>
+        // Interceptar logs do console
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logsDiv = document.getElementById('console-logs');
+        
+        function addLog(message, type = 'log') {
+            const logElement = document.createElement('div');
+            logElement.className = type === 'error' ? 'error' : 'success';
+            logElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(logElement);
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog(args.join(' '), 'error');
+        };
+        
+        // Verificar se o script carregou
+        setTimeout(() => {
+            const statusEl = document.getElementById('script-status');
+            const elementsEl = document.getElementById('elements-status');
+            
+            if (typeof RoomChat !== 'undefined') {
+                statusEl.innerHTML = '<span class="success">✅ room.js carregado com sucesso!</span>';
+            } else {
+                statusEl.innerHTML = '<span class="error">❌ room.js não foi carregado!</span>';
+            }
+            
+            // Verificar elementos
+            const elements = [
+                'leave-room', 'close-room', 'leave-modal', 'close-modal',
+                'confirm-leave', 'confirm-close'
+            ];
+            
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                const status = element ? '✅' : '❌';
+                const div = document.createElement('div');
+                div.innerHTML = `${status} #${id}: ${element ? 'Encontrado' : 'Não encontrado'}`;
+                elementsEl.appendChild(div);
+            });
+        }, 1000);
+    </script>
+
+    <!-- Carregar o room.js -->
+    <script src="js/room.js"></script>
+</body>
+</html>

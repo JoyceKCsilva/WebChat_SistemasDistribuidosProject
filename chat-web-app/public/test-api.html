@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API</title>
+</head>
+<body>
+    <h1>Teste da API</h1>
+    <button id="testBtn">Testar API</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testando...';
+            
+            try {
+                // Teste básico
+                const response = await fetch('/api/system/status');
+                const data = await response.json();
+                result.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                console.log('Status API:', response.status, data);
+            } catch (error) {
+                result.innerHTML = `Erro: ${error.message}`;
+                console.error('Erro:', error);
+            }
+        });
+    </script>
+</body>
+</html>

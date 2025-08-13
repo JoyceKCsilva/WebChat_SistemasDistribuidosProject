@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CodeRoom</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <header class="login-header">
+                <h1>💻 CodeRoom</h1>
+                <p>Entre ou cadastre-se para acessar as salas de discussão colaborativa</p>
+            </header>
+
+            <!-- Formulário de Login -->
+            <div id="login-form" class="auth-form active">
+                <h2>Entrar</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-username">Nome de usuário:</label>
+                        <input type="text" id="login-username" name="username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Senha:</label>
+                        <input type="password" id="login-password" name="password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-primary">Entrar</button>
+                </form>
+                <p class="auth-switch">
+                    Não tem uma conta? <a href="#" id="show-register">Cadastre-se</a>
+                </p>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div id="register-form" class="auth-form">
+                <h2>Cadastrar</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="register-username">Nome de usuário:</label>
+                        <input type="text" id="register-username" name="username" required 
+                               pattern="[a-zA-Z0-9_]+" title="Apenas letras, números e underscore" 
+                               minlength="3" maxlength="20" autocomplete="username">
+                        <small>Entre 3-20 caracteres, apenas letras, números e underscore</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email (opcional):</label>
+                        <input type="email" id="register-email" name="email" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-display-name">Nome de exibição:</label>
+                        <input type="text" id="register-display-name" name="displayName" 
+                               maxlength="50" autocomplete="name">
+                        <small>Como você quer ser chamado nas salas</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Senha:</label>
+                        <input type="password" id="register-password" name="password" required 
+                               minlength="6" autocomplete="new-password">
+                        <small>Mínimo 6 caracteres</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password-confirm">Confirmar senha:</label>
+                        <input type="password" id="register-password-confirm" name="passwordConfirm" required 
+                               autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn-primary">Cadastrar</button>
+                </form>
+                <p class="auth-switch">
+                    Já tem uma conta? <a href="#" id="show-login">Entre</a>
+                </p>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Carregando...</p>
+            </div>
+
+            <div id="error-message" class="error-message hidden"></div>
+        </div>
+    </div>
+
+    <script src="js/login.js"></script>
+</body>
+</html>

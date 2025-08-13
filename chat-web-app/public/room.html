@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sala - CodeRoom</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/room.css" />
+  </head>
+  <body>
+    <div class="room-container">
+      <!-- Header da sala -->
+      <header class="room-header">
+        <div class="room-info">
+          <h1 id="room-name">Carregando...</h1>
+          <div class="room-details">
+            <span class="room-code"
+              >Código: <strong id="room-code-display"></strong
+            ></span>
+            <span class="room-owner" id="room-owner-info">
+              👑 Proprietário: <strong id="room-owner-name">Carregando...</strong>
+            </span>
+            <span class="user-count"
+              >👥 <span id="user-count">0</span> usuários</span
+            >
+          </div>
+        </div>
+        <div class="room-actions">
+         <button
+  id="copy-room-code"
+  class="btn btn-primary btn-sm d-flex align-items-center gap-1"
+  title="Copiar código da sala"
+>
+  📋 <span>Copiar</span>
+</button>
+          <button id="close-room" class="btn btn-sm btn-danger" style="display: none;">Fechar Sala</button>
+          <button id="leave-room" class="btn btn-sm btn-danger">Sair</button>
+        </div>
+      </header>
+
+      <div class="room-content">
+        <!-- Sidebar com usuários online -->
+        <aside class="users-sidebar">
+          <h3>👥 Usuários Online</h3>
+          <div id="users-list" class="users-list">
+            <!-- Lista de usuários será preenchida dinamicamente -->
+          </div>
+        </aside>
+
+        <!-- Área principal do chat -->
+        <main class="chat-main">
+          <!-- Área de mensagens -->
+          <div id="messages-container" class="messages-container">
+            <div id="loading-messages" class="loading-messages">
+              <div class="spinner"></div>
+              <p>Carregando mensagens...</p>
+            </div>
+            <div id="messages" class="messages">
+              <!-- Mensagens serão inseridas aqui -->
+            </div>
+          </div>
+
+          <!-- Área de input -->
+          <div class="message-input-area">
+            <!-- Preview de arquivo selecionado -->
+            <div id="file-preview" class="file-preview hidden">
+              <div class="file-info">
+                <span id="file-name"></span>
+                <button id="remove-file" class="btn-remove">×</button>
+              </div>
+            </div>
+
+            <!-- Preview de gravação de áudio -->
+            <div
+              id="audio-recording-preview"
+              class="audio-recording-preview hidden"
+            >
+              <div class="recording-info">
+                <span id="recording-status"
+                  >🔴 Gravando... <span id="recording-time">00:00</span></span
+                >
+                <div class="recording-controls">
+                  <button id="stop-recording" class="btn btn-danger">
+                    ⏹️ Parar
+                  </button>
+                  <button id="cancel-recording" class="btn btn-secondary">
+                    ❌ Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview de áudio gravado -->
+            <div id="audio-preview" class="audio-preview hidden">
+              <div class="audio-info">
+                <audio id="audio-player" controls></audio>
+                <div class="audio-actions">
+                  <button id="send-audio" class="btn btn-primary">
+                    📤 Enviar
+                  </button>
+                  <button id="re-record-audio" class="btn btn-secondary">
+                    🔄 Gravar novamente
+                  </button>
+                  <button id="cancel-audio" class="btn btn-secondary">
+                    ❌ Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Barra de input -->
+            <div class="input-toolbar">
+              <div class="input-group">
+                <input
+                  type="file"
+                  id="file-input"
+                  accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                  style="display: none"
+                />
+                <button
+                  id="attach-file-btn"
+                  class="btn btn-icon-arq"
+                  title="Anexar arquivo"
+                >
+                  📎
+                </button>
+
+                <button
+                  id="record-audio-btn"
+                  class="btn btn-icon"
+                  title="Gravar áudio"
+                >
+                  🎤
+                </button>
+
+                <input
+  type="text"
+  id="message-input"
+  class="chat-input"
+  placeholder="Digite sua mensagem..."
+  maxlength="1000"
+/>
+
+
+                <button id="send-message-btn" class="btn btn-primary" disabled>
+                  Enviar
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal de confirmação para sair -->
+    <div id="leave-modal" class="modal">
+      <div class="modal-content">
+        <h3>Sair da sala?</h3>
+        <p>Você tem certeza que deseja sair desta sala?</p>
+        <div class="modal-actions">
+          <button id="confirm-leave" class="btn btn-danger">Sim, sair</button>
+          <button id="cancel-leave" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de confirmação para fechar sala -->
+    <div id="close-modal" class="modal">
+      <div class="modal-content">
+        <h3>⚠️ Fechar sala permanentemente?</h3>
+        <p>Esta ação é <strong>irreversível</strong>! A sala será fechada para todos os usuários e não poderá ser recuperada.</p>
+        <div class="modal-actions">
+          <button id="confirm-close" class="btn btn-danger">Sim, fechar permanentemente</button>
+          <button id="cancel-close" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notificações -->
+    <div id="notification" class="notification hidden">
+      <span id="notification-text"></span>
+      <button id="close-notification">×</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/room.js"></script>
+  </body>
+</html>
