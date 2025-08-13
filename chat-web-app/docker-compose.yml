@@ -1,6 +1,18 @@
-version: '3.8'
-
 services:
+  mongodb:
+    image: mongo:7.0
+    container_name: forum-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=forumdb
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: forum-mosquitto
@@ -22,13 +34,16 @@ services:
       - NODE_ENV=production
       - MQTT_HOST=mosquitto
       - MQTT_PORT=1883
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/forumdb?authSource=admin
+      - DB_TYPE=mongodb
     depends_on:
       - mosquitto
+      - mongodb
     volumes:
-      - ./data:/app/data
       - ./public/uploads:/app/public/uploads
     restart: unless-stopped
 
 volumes:
+  mongodb_data:
   mosquitto_data:
   mosquitto_log:
