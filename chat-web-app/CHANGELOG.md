@@ -56,7 +56,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Sistema de salas com códigos únicos de 8 caracteres
 - Chat em tempo real com WebSockets
 - Upload de arquivos (imagens, vídeos, áudios, documentos)
-- Banco de dados SQLite para persistência
+- Banco de dados MongoDB para persistência
 - Lista de usuários online em tempo real
 - Rate limiting para proteção contra spam
 - Interface responsiva moderna
@@ -80,7 +80,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Estrutura básica do servidor Express
 - WebSocket para comunicação em tempo real
 - Interface básica de chat
-- Banco de dados SQLite
+- Banco de dados MongoDB
 - Sistema básico de upload de arquivos
 
 ---

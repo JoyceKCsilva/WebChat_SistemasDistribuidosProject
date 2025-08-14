@@ -1,0 +1,2 @@
+# Este arquivo mantém a pasta mosquitto/log no repositório
+# Os logs do broker MQTT serão criados aqui durante a execução

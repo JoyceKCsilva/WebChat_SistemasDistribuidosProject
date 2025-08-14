@@ -1,0 +1,40 @@
+# Definir comportamento de line endings
+* text=auto eol=lf
+
+# Arquivos que sempre devem ter LF
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.conf text eol=lf
+*.sh text eol=lf
+
+# Arquivos binários
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.mp3 binary
+*.mp4 binary
+*.webm binary
+*.wav binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
+# Arquivos que devem manter formato original
+.env* text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+.gitignore text eol=lf
+
+# Linguistict para GitHub
+public/uploads/** linguist-generated=true
+node_modules/** linguist-vendored=true
+*.log linguist-generated=true

@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -9,12 +9,12 @@ const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const Database = require("./database/database");
+const DatabaseFactory = require("./database/databaseFactory");
 const WebSocketMQTTBridge = require("./mqtt/websocketBridge");
 
 const app = express();
 const server = http.createServer(app);
-const db = new Database();
+const db = DatabaseFactory.create();
 
 // Inicializar bridge MQTT-WebSocket
 const bridge = new WebSocketMQTTBridge();
@@ -112,22 +112,22 @@ const roomConnections = new Map();
 function authenticateToken(req, res, next) {
   console.log("🔐 [AUTH] Verificando autenticação...");
   console.log("🔐 [AUTH] Headers:", req.headers);
-  
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
   console.log("🔐 [AUTH] Auth header:", authHeader);
   console.log("🔐 [AUTH] Token extraído:", token ? "Presente" : "Ausente");
 
   if (!token) {
     console.log("🔐 [AUTH] Token não fornecido");
-    return res.status(401).json({ message: 'Token de acesso requerido' });
+    return res.status(401).json({ message: "Token de acesso requerido" });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       console.log("🔐 [AUTH] Token inválido:", err.message);
-      return res.status(403).json({ message: 'Token inválido' });
+      return res.status(403).json({ message: "Token inválido" });
     }
     console.log("🔐 [AUTH] Token válido, usuário:", user);
     req.user = user;
@@ -149,21 +149,32 @@ app.post("/api/auth/register", async (req, res) => {
 
     // Validações básicas
     if (!username || !password) {
-      return res.status(400).json({ message: 'Nome de usuário e senha são obrigatórios' });
+      return res
+        .status(400)
+        .json({ message: "Nome de usuário e senha são obrigatórios" });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: 'A senha deve ter pelo menos 6 caracteres' });
+      return res
+        .status(400)
+        .json({ message: "A senha deve ter pelo menos 6 caracteres" });
     }
 
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ message: 'Nome de usuário deve conter apenas letras, números e underscore' });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Nome de usuário deve conter apenas letras, números e underscore",
+        });
     }
 
     // Verificar se o usuário já existe
     const existingUser = await db.getUserByUsername(username);
     if (existingUser) {
-      return res.status(409).json({ message: 'Nome de usuário já está em uso' });
+      return res
+        .status(409)
+        .json({ message: "Nome de usuário já está em uso" });
     }
 
     // Hash da senha
@@ -171,20 +182,25 @@ app.post("/api/auth/register", async (req, res) => {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Criar usuário
-    const user = await db.createUser(username, passwordHash, email, displayName);
+    const user = await db.createUser(
+      username,
+      passwordHash,
+      email,
+      displayName
+    );
 
     res.status(201).json({
       success: true,
-      message: 'Usuário criado com sucesso',
+      message: "Usuário criado com sucesso",
       user: {
         id: user.id,
         username: user.username,
-        display_name: user.displayName
-      }
+        display_name: user.displayName,
+      },
     });
   } catch (error) {
-    console.error('Erro no registro:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error("Erro no registro:", error);
+    res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
@@ -194,19 +210,21 @@ app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ message: 'Nome de usuário e senha são obrigatórios' });
+      return res
+        .status(400)
+        .json({ message: "Nome de usuário e senha são obrigatórios" });
     }
 
     // Buscar usuário
     const user = await db.getUserByUsername(username);
     if (!user) {
-      return res.status(401).json({ message: 'Credenciais inválidas' });
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
 
     // Verificar senha
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
     if (!passwordMatch) {
-      return res.status(401).json({ message: 'Credenciais inválidas' });
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
 
     // Atualizar último login
@@ -214,9 +232,9 @@ app.post("/api/auth/login", async (req, res) => {
 
     // Gerar token JWT
     const token = jwt.sign(
-      { 
-        username: user.username, 
-        displayName: user.display_name 
+      {
+        username: user.username,
+        displayName: user.display_name,
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
@@ -224,17 +242,17 @@ app.post("/api/auth/login", async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Login realizado com sucesso',
+      message: "Login realizado com sucesso",
       token,
       user: {
         username: user.username,
         display_name: user.display_name,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
   } catch (error) {
-    console.error('Erro no login:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error("Erro no login:", error);
+    res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
@@ -243,7 +261,7 @@ app.get("/api/auth/verify", authenticateToken, async (req, res) => {
   try {
     const user = await db.getUserByUsername(req.user.username);
     if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+      return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
     res.json({
@@ -251,19 +269,19 @@ app.get("/api/auth/verify", authenticateToken, async (req, res) => {
       user: {
         username: user.username,
         display_name: user.display_name,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
   } catch (error) {
-    console.error('Erro na verificação:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error("Erro na verificação:", error);
+    res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
 // Logout
 app.post("/api/auth/logout", authenticateToken, (req, res) => {
   // No JWT, o logout é feito no cliente removendo o token
-  res.json({ success: true, message: 'Logout realizado com sucesso' });
+  res.json({ success: true, message: "Logout realizado com sucesso" });
 });
 
 // Obter salas do usuário
@@ -272,8 +290,8 @@ app.get("/api/user/rooms", authenticateToken, async (req, res) => {
     const rooms = await db.getUserRooms(req.user.username);
     res.json({ success: true, rooms });
   } catch (error) {
-    console.error('Erro ao buscar salas do usuário:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error("Erro ao buscar salas do usuário:", error);
+    res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
@@ -288,7 +306,7 @@ app.post("/api/rooms", authenticateToken, async (req, res) => {
     const displayName = req.user.displayName;
 
     const room = await db.createRoom(roomCode, roomName, displayName, username);
-    
+
     // Adicionar o criador como participante permanente
     await db.addRoomParticipant(roomCode, username, true);
 
@@ -354,7 +372,7 @@ app.post("/api/rooms/:code/join", authenticateToken, async (req, res) => {
     res.json({
       success: true,
       message: "Entrou na sala com sucesso",
-      room: room
+      room: room,
     });
   } catch (error) {
     console.error("Erro ao entrar na sala:", error);
@@ -371,11 +389,13 @@ app.post("/api/rooms/:code/leave", authenticateToken, async (req, res) => {
     console.log("🚪 [LEAVE ROOM] Requisição recebida");
     console.log("🚪 [LEAVE ROOM] Parâmetros:", req.params);
     console.log("🚪 [LEAVE ROOM] Usuário:", req.user);
-    
+
     const { code } = req.params;
     const username = req.user.username;
 
-    console.log(`🚪 [LEAVE ROOM] Usuário ${username} tentando sair da sala ${code}`);
+    console.log(
+      `🚪 [LEAVE ROOM] Usuário ${username} tentando sair da sala ${code}`
+    );
 
     // Verificar se a sala existe
     const room = await db.getRoomByCode(code);
@@ -390,14 +410,18 @@ app.post("/api/rooms/:code/leave", authenticateToken, async (req, res) => {
     console.log("🚪 [LEAVE ROOM] Sala encontrada:", room);
 
     // Verificar se é o dono da sala
-    const isOwner = (room.owner_username === username) || (room.created_by === username);
+    const isOwner =
+      room.owner_username === username || room.created_by === username;
     console.log("🚪 [LEAVE ROOM] É proprietário?", isOwner);
-    
+
     if (isOwner) {
-      console.log("🚪 [LEAVE ROOM] Proprietário não pode sair, deve fechar a sala");
+      console.log(
+        "🚪 [LEAVE ROOM] Proprietário não pode sair, deve fechar a sala"
+      );
       return res.status(403).json({
         success: false,
-        message: "O dono da sala não pode sair. Use a opção 'Fechar Sala' para encerrar definitivamente.",
+        message:
+          "O dono da sala não pode sair. Use a opção 'Fechar Sala' para encerrar definitivamente.",
       });
     }
 
@@ -429,11 +453,13 @@ app.post("/api/rooms/:code/close", authenticateToken, async (req, res) => {
     console.log("🔒 [CLOSE ROOM] Requisição recebida");
     console.log("🔒 [CLOSE ROOM] Parâmetros:", req.params);
     console.log("🔒 [CLOSE ROOM] Usuário:", req.user);
-    
+
     const { code } = req.params;
     const username = req.user.username;
-    
-    console.log(`🔒 [CLOSE ROOM] Usuário ${username} tentando fechar a sala ${code}`);
+
+    console.log(
+      `🔒 [CLOSE ROOM] Usuário ${username} tentando fechar a sala ${code}`
+    );
 
     // Verificar se a sala existe
     const room = await db.getRoomByCode(code);
@@ -447,8 +473,16 @@ app.post("/api/rooms/:code/close", authenticateToken, async (req, res) => {
     }
 
     // Verificar se é o dono da sala
-    const isOwner = (room.owner_username === username) || (room.created_by === username);
-    console.log("[CLOSE ROOM] É proprietário?", isOwner, "| owner_username:", room.owner_username, "| created_by:", room.created_by);
+    const isOwner =
+      room.owner_username === username || room.created_by === username;
+    console.log(
+      "[CLOSE ROOM] É proprietário?",
+      isOwner,
+      "| owner_username:",
+      room.owner_username,
+      "| created_by:",
+      room.created_by
+    );
     if (!isOwner) {
       console.log("[CLOSE ROOM] Usuário não é proprietário");
       return res.status(403).json({
@@ -461,19 +495,25 @@ app.post("/api/rooms/:code/close", authenticateToken, async (req, res) => {
     // Notificar todos os usuários que a sala foi fechada
     broadcastToRoom(code, {
       type: "room_closed",
-      message: "Esta sala foi fechada pelo proprietário"
+      message: "Esta sala foi fechada pelo proprietário",
     });
 
     // Fechar todas as conexões WebSocket da sala
     if (roomConnections.has(code)) {
       const connections = roomConnections.get(code);
-      console.log("[CLOSE ROOM] Fechando", connections.size, "conexões WebSocket");
-      connections.forEach(connection => {
+      console.log(
+        "[CLOSE ROOM] Fechando",
+        connections.size,
+        "conexões WebSocket"
+      );
+      connections.forEach((connection) => {
         if (connection.ws.readyState === WebSocket.OPEN) {
-          connection.ws.send(JSON.stringify({
-            type: "room_closed",
-            message: "Esta sala foi fechada pelo proprietário"
-          }));
+          connection.ws.send(
+            JSON.stringify({
+              type: "room_closed",
+              message: "Esta sala foi fechada pelo proprietário",
+            })
+          );
           connection.ws.close();
         }
       });
@@ -534,25 +574,26 @@ app.get("/api/rooms/:code/users", async (req, res) => {
 
     // Buscar todos os participantes da sala
     const participants = await db.getRoomParticipants(code);
-    
+
     // Verificar status online para cada participante
     const onlineUsernames = new Set();
     if (roomConnections.has(code)) {
       const connections = roomConnections.get(code);
       connections.forEach((conn) => {
-        if (conn.ws.readyState === 1) { // WebSocket.OPEN
+        if (conn.ws.readyState === 1) {
+          // WebSocket.OPEN
           onlineUsernames.add(conn.username);
         }
       });
     }
 
     // Mapear participantes com status online/offline
-    const users = participants.map(participant => ({
+    const users = participants.map((participant) => ({
       username: participant.username,
       display_name: participant.display_name || participant.username,
       is_online: onlineUsernames.has(participant.username),
       room_code: code,
-      is_permanent_member: participant.is_permanent_member
+      is_permanent_member: participant.is_permanent_member,
     }));
 
     res.json({
@@ -577,20 +618,20 @@ app.get("/api/system/status", (req, res) => {
       system: {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       websocket: {
         totalConnections: stats.totalConnections,
         totalRooms: stats.totalRooms,
-        rooms: stats.roomsDetail
+        rooms: stats.roomsDetail,
       },
-      mqtt: stats.mqttStatus
+      mqtt: stats.mqttStatus,
     });
   } catch (error) {
     console.error("Erro ao obter status do sistema:", error);
     res.status(500).json({
       success: false,
-      message: "Erro ao obter status do sistema"
+      message: "Erro ao obter status do sistema",
     });
   }
 });
@@ -721,10 +762,10 @@ async function handleJoinRoom(ws, data) {
 
     // Adicionar usuário à sala (mantém compatibilidade)
     await db.addUser(username, roomCode);
-    
+
     // Adicionar como participante permanente para aparecer no histórico
     await db.addRoomParticipant(roomCode, username, true);
-    
+
     // Marcar usuário como online
     await db.updateUserStatus(username, roomCode, true);
 
@@ -737,21 +778,21 @@ async function handleJoinRoom(ws, data) {
     roomConnections.get(roomCode).push({
       ws: ws,
       username: username,
-      userId: userId
+      userId: userId,
     });
 
     // Publicar evento de entrada via MQTT
-    bridge.mqttService.publishRoomUserEvent(roomCode, 'join', {
+    bridge.mqttService.publishRoomUserEvent(roomCode, "join", {
       userId: userId,
-      username: username
+      username: username,
     });
 
     // Publicar analytics via MQTT
     bridge.mqttService.publishAnalytics({
-      event: 'user_joined_room',
+      event: "user_joined_room",
       roomId: roomCode,
       userId: userId,
-      username: username
+      username: username,
     });
 
     // Enviar histórico de mensagens
@@ -836,7 +877,7 @@ async function handleSendMessage(ws, data) {
         userId: data.userId || username,
         username: username,
         message: message,
-        roomId: roomCode
+        roomId: roomCode,
       });
     } else if (messageType === "file") {
       bridge.mqttService.publishRoomMessage(roomCode, {
@@ -847,7 +888,7 @@ async function handleSendMessage(ws, data) {
         fileUrl: filePath,
         fileType: messageType,
         fileSize: fileSize,
-        roomId: roomCode
+        roomId: roomCode,
       });
     }
 
@@ -878,17 +919,17 @@ async function handleLeaveRoom(ws, data) {
 
     // Publicar evento de saída via MQTT
     if (userId) {
-      bridge.mqttService.publishRoomUserEvent(roomCode, 'leave', {
+      bridge.mqttService.publishRoomUserEvent(roomCode, "leave", {
         userId: userId,
-        username: username
+        username: username,
       });
 
       // Publicar analytics via MQTT
       bridge.mqttService.publishAnalytics({
-        event: 'user_left_room',
+        event: "user_left_room",
         roomId: roomCode,
         userId: userId,
-        username: username
+        username: username,
       });
     }
 
@@ -943,32 +984,37 @@ async function broadcastUsersList(roomCode) {
   try {
     // Buscar todos os participantes da sala
     const participants = await db.getRoomParticipants(roomCode);
-    
+
     // Verificar status online para cada participante
     const onlineUsernames = new Set();
     if (roomConnections.has(roomCode)) {
       const connections = roomConnections.get(roomCode);
       connections.forEach((conn) => {
-        if (conn.ws.readyState === 1) { // WebSocket.OPEN
+        if (conn.ws.readyState === 1) {
+          // WebSocket.OPEN
           onlineUsernames.add(conn.username);
         }
       });
     }
 
     // Mapear participantes com status online/offline
-    const users = participants.map(participant => ({
+    const users = participants.map((participant) => ({
       username: participant.username,
       display_name: participant.display_name || participant.username,
       is_online: onlineUsernames.has(participant.username),
       room_code: roomCode,
-      is_permanent_member: participant.is_permanent_member
+      is_permanent_member: participant.is_permanent_member,
     }));
 
     // Fazer broadcast para todos os usuários da sala (incluindo o próprio usuário)
-    broadcastToRoom(roomCode, {
-      type: "users_list_updated",
-      users: users,
-    }, null); // null = não excluir ninguém
+    broadcastToRoom(
+      roomCode,
+      {
+        type: "users_list_updated",
+        users: users,
+      },
+      null
+    ); // null = não excluir ninguém
   } catch (error) {
     console.error("Erro ao fazer broadcast da lista de usuários:", error);
   }
@@ -977,27 +1023,29 @@ async function broadcastUsersList(roomCode) {
 // Inicializar bridge MQTT antes de iniciar o servidor
 async function startServer() {
   try {
-    console.log('🔄 Iniciando servidor...');
-    
+    console.log("🔄 Iniciando servidor...");
+
     // Tentar inicializar MQTT (não falha se não conseguir)
     try {
       await bridge.initialize();
-      console.log('✅ Bridge MQTT-WebSocket inicializado');
+      console.log("✅ Bridge MQTT-WebSocket inicializado");
     } catch (error) {
-      console.warn('⚠️ Continuando sem MQTT:', error.message);
+      console.warn("⚠️ Continuando sem MQTT:", error.message);
     }
-    
+
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Servidor do Fórum rodando em http://localhost:${PORT}`);
       console.log(`🔌 WebSocket server is running on ws://localhost:${PORT}`);
       if (bridge.mqttService.isConnected) {
         console.log(`📡 MQTT Bridge ativo`);
       } else {
-        console.log(`⚠️ MQTT não disponível - funcionando apenas com WebSocket`);
+        console.log(
+          `⚠️ MQTT não disponível - funcionando apenas com WebSocket`
+        );
       }
     });
   } catch (error) {
-    console.error('❌ Erro ao inicializar servidor:', error);
+    console.error("❌ Erro ao inicializar servidor:", error);
     process.exit(1);
   }
 }

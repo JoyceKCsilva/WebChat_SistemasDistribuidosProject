@@ -3,12 +3,14 @@
 ## 🔧 Infraestrutura
 
 ### ✅ Servidor Node.js
+
 - [x] Servidor inicia sem erros
 - [x] API de status funciona: `http://localhost:8080/api/system/status`
 - [x] Interface web carrega: `http://localhost:8080`
 - [x] WebSocket está ativo na porta 8080
 
 ### ⚠️ MQTT (Opcional)
+
 - [ ] Broker MQTT rodando (localhost:1883)
 - [x] Sistema funciona sem MQTT (fallback)
 - [x] Logs indicam fallback quando MQTT não disponível
@@ -17,12 +19,14 @@
 ## 🌐 Funcionalidades Web
 
 ### Página Inicial
+
 - [ ] Criar nova sala funciona
 - [ ] Entrar em sala existente funciona
 - [ ] Validação de formulários
 - [ ] Códigos de sala únicos gerados
 
 ### Sala de Chat
+
 - [ ] Conexão WebSocket estabelecida
 - [ ] Envio de mensagens de texto
 - [ ] Recebimento de mensagens em tempo real
@@ -35,6 +39,7 @@
 ## 📡 Integração MQTT
 
 ### Com Broker Disponível
+
 - [ ] Conexão MQTT estabelecida
 - [ ] Publicação de mensagens nos tópicos corretos
 - [ ] Recebimento de mensagens via MQTT
@@ -42,6 +47,7 @@
 - [ ] Eventos de usuários propagados
 
 ### Sem Broker (Fallback)
+
 - [x] Sistema funciona normalmente
 - [x] WebSocket mantém funcionalidade
 - [x] Logs indicam modo fallback
@@ -50,6 +56,7 @@
 ## 🛠️ APIs e Monitoramento
 
 ### Endpoints
+
 - [x] `/api/system/status` - Status do sistema
 - [ ] `/api/rooms/:code` - Informações da sala
 - [ ] `/api/rooms/:code/messages` - Mensagens da sala
@@ -57,7 +64,8 @@
 - [ ] Upload de arquivos via POST
 
 ### Banco de Dados
-- [x] SQLite inicializado
+
+- [x] MongoDB conectado
 - [x] Tabelas criadas
 - [ ] Mensagens persistidas
 - [ ] Usuários registrados
@@ -66,6 +74,7 @@
 ## 🧪 Testes para Executar
 
 ### 1. Teste Básico de Chat
+
 ```bash
 # 1. Abrir http://localhost:8080
 # 2. Criar sala "TesteMQTT" com usuário "Usuario1"
@@ -76,6 +85,7 @@
 ```
 
 ### 2. Teste de Upload
+
 ```bash
 # 1. Na sala de teste, clicar em anexar arquivo
 # 2. Selecionar uma imagem pequena
@@ -84,6 +94,7 @@
 ```
 
 ### 3. Teste de Gravação de Áudio
+
 ```bash
 # 1. Clicar no botão de microfone
 # 2. Permitir acesso ao microfone
@@ -93,6 +104,7 @@
 ```
 
 ### 4. Teste de Persistência
+
 ```bash
 # 1. Enviar várias mensagens
 # 2. Sair da sala
@@ -101,6 +113,7 @@
 ```
 
 ### 5. Teste com MQTT (quando disponível)
+
 ```bash
 # 1. Instalar Mosquitto: https://mosquitto.org/download/
 # 2. Iniciar broker: mosquitto -c mosquitto/config/mosquitto.conf
@@ -120,11 +133,13 @@
 ## 📝 Próximos Passos
 
 1. **Para Desenvolvimento:**
+
    - Sistema já funcional via WebSocket
    - Testar todas as funcionalidades web
    - Validar persistência de dados
 
 2. **Para Produção com MQTT:**
+
    - Instalar Docker ou Mosquitto standalone
    - Configurar broker MQTT
    - Testar comunicação distribuída

@@ -1,5 +1,7 @@
 # 💻 CodeRoom - Sistema de Chat Colaborativo Moderno
 
+> **Versão 2.1.0** - Sistema de salas de chat em tempo real com design moderno
+
 CodeRoom é uma plataforma moderna de salas de chat colaborativo em tempo real, projetada especialmente para desenvolvedores e equipes que precisam de comunicação eficiente e organizada. Com design contemporâneo inspirado no Telegram e interface responsiva.
 
 ---
@@ -7,12 +9,14 @@ CodeRoom é uma plataforma moderna de salas de chat colaborativo em tempo real, 
 ## ✨ Características Modernas
 
 ### 🎨 Design Contemporâneo
+
 - **Interface Escura**: Tema dark moderno que reduz o cansaço visual
 - **Design System**: Sistema de cores e componentes consistente
 - **Animações Suaves**: Transições e micro-interações elegantes
 - **Tipografia Otimizada**: Fontes system para melhor legibilidade
 
 ### 📱 Responsividade Total
+
 - **Mobile-First**: Projetado primeiro para dispositivos móveis
 - **Breakpoints Inteligentes**: Adaptação perfeita para qualquer tela
 - **Touch-Friendly**: Controles otimizados para toque
@@ -20,19 +24,37 @@ CodeRoom é uma plataforma moderna de salas de chat colaborativo em tempo real, 
 
 ## ✨ Funcionalidades Principais
 
-- **Chat em Tempo Real**: Mensagens instantâneas via WebSocket, histórico persistente em banco SQLite.
-- **Comunicação Distribuída**: MQTT para integração com microserviços (opcional).
-- **Salas Privadas**: Criação e entrada em salas por código único de 8 caracteres.
-- **Upload de Arquivos**: Imagens, vídeos, áudios, PDFs, textos e outros (até 10MB).
-- **Gravação de Áudio**: Grave e envie mensagens de áudio direto do navegador.
-- **Visualização de Mídia**: Preview e modais para imagens, vídeos, áudios, PDFs e textos.
-- **Lista de Usuários Online**: Sidebar mostra quem está conectado na sala.
-- **Notificações Visuais**: Sistema de toast notifications moderno.
-- **Cópia de Código da Sala**: Botão para copiar o código e compartilhar.
-- **Interface Responsiva**: Design adaptado perfeitamente para desktop, tablet e mobile.
-- **Confirmação de Ações**: Modais para evitar ações acidentais.
-- **Analytics em Tempo Real**: Métricas via MQTT (quando disponível).
-- **Fallback Gracioso**: Sistema funciona com ou sem MQTT.
+### 🎙️ **Novidade v2.1**: Sistema de Gravação de Áudio
+
+- **Gravação em tempo real** com timer visual
+- **Controles intuitivos**: gravar, parar, cancelar, re-gravar
+- **Preview antes do envio** com player integrado
+- **Qualidade otimizada** com cancelamento de eco e supressão de ruído
+- **Compatibilidade ampla**: WebM, MP4, WAV com fallbacks automáticos
+
+### 📺 **Novidade v2.1**: Visualização Rica de Mídia
+
+- **Imagens**: Preview inline + modal full-size estilo galeria
+- **Vídeos**: Player integrado com controles completos
+- **Áudios**: Player compacto otimizado para mensagens
+- **PDFs**: Visualização direta em modal com zoom
+- **Documentos**: Arquivos de texto exibidos formatados
+- **Navegação**: Modais responsivos com atalhos de teclado (ESC)
+
+### 🔐 **Core Features**
+
+- **Sistema de Autenticação**: Registro e login de usuários com JWT
+- **Chat em Tempo Real**: Mensagens instantâneas via WebSocket, histórico persistente em MongoDB
+- **Comunicação Distribuída**: MQTT para integração com microserviços (opcional)
+- **Salas Privadas**: Criação e entrada em salas por código único de 8 caracteres
+- **Upload de Arquivos**: Imagens, vídeos, áudios, PDFs, textos e outros (até 10MB)
+- **Lista de Usuários Online**: Sidebar mostra quem está conectado na sala
+- **Notificações Visuais**: Sistema de toast notifications moderno
+- **Cópia de Código da Sala**: Botão para copiar o código e compartilhar
+- **Interface Responsiva**: Design adaptado perfeitamente para desktop, tablet e mobile
+- **Confirmação de Ações**: Modais para evitar ações acidentais
+- **Analytics em Tempo Real**: Métricas via MQTT (quando disponível)
+- **Fallback Gracioso**: Sistema funciona com ou sem MQTT
 
 ---
 
@@ -41,22 +63,25 @@ CodeRoom é uma plataforma moderna de salas de chat colaborativo em tempo real, 
 ```
 chat-web-app/
 ├── server/
-│   ├── server.js           # Servidor Express + WebSocket + MQTT
-│   ├── websocket.js        # Lógica do WebSocket (legado)
+│   ├── server.js           # Servidor Express + WebSocket + MQTT + Auth
 │   ├── database/
-│   │   └── database.js     # Métodos e config do SQLite
+│   │   ├── databaseFactory.js  # Factory para MongoDB
+│   │   └── mongoDatabase.js    # Métodos e config do MongoDB
 │   └── mqtt/
 │       ├── mqttService.js      # Serviço principal MQTT
 │       └── websocketBridge.js  # Bridge WebSocket-MQTT
 ├── public/
 │   ├── index.html          # Página inicial (criar/entrar em salas)
+│   ├── login.html          # Página de autenticação (login/registro)
 │   ├── room.html           # Página da sala de chat
 │   ├── css/
 │   │   ├── main.css        # Estilos da página inicial
+│   │   ├── login.css       # Estilos da página de login
 │   │   ├── style.css       # Estilos globais
 │   │   └── room.css        # Estilos da sala (modais, anexos, áudio)
 │   ├── js/
 │   │   ├── main.js         # JS da página inicial
+│   │   ├── login.js        # JS da página de login
 │   │   ├── room.js         # JS da sala (chat, anexos, áudio)
 │   │   ├── chat.js         # (Reservado para lógica de chat)
 │   │   └── client.js       # (Reservado para WebSocket client)
@@ -67,16 +92,20 @@ chat-web-app/
 │   │   └── mosquitto.conf  # Configuração do broker MQTT
 │   ├── data/               # Dados persistentes do MQTT
 │   └── log/                # Logs do broker
-├── data/
-│   └── forum.db            # Banco de dados SQLite
-├── docker-compose.yml      # Orquestração Docker
-├── Dockerfile              # Container da aplicação
-├── .env.example            # Variáveis de ambiente
-├── test-mqtt.js            # Script de teste MQTT
-├── CHECKLIST-TESTES.md     # Checklist de validação
-├── package.json            # Dependências e scripts
-├── .gitignore
-└── README.md
+├── mongo-init/
+│   └── init-mongo.js       # Script de inicialização MongoDB
+├── docker-compose.yml      # Orquestração Docker (MongoDB + MQTT + App)
+├── Dockerfile              # Container da aplicação Node.js
+├── .env.example            # Variáveis de ambiente template
+├── test-mqtt.js            # Script de teste e validação MQTT
+├── test-api.js             # Script de teste das APIs REST
+├── CHANGELOG.md            # Histórico de versões e mudanças
+├── MIGRATION.md            # Documentação da migração para MongoDB
+├── CHECKLIST-TESTES.md     # Checklist de validação e testes
+├── CONTRIBUTING.md         # Guia para contribuidores
+├── package.json            # Dependências, scripts e metadados
+├── .gitignore              # Arquivos ignorados pelo Git
+└── README.md               # Este arquivo
 ```
 
 ---
@@ -86,15 +115,30 @@ chat-web-app/
 ### 1. Pré-requisitos
 
 **Essenciais:**
-- Node.js 14+  
-- NPM  
-- Navegador moderno (suporte a WebRTC e MediaRecorder API)
+
+- Node.js 20+
+- NPM
+- Navegador moderno com suporte a:
+  - WebSocket para chat em tempo real
+  - MediaRecorder API para gravação de áudio
+  - getUserMedia API para acesso ao microfone
+  - File API para upload de arquivos
+  - Fetch API para requisições
+
+**Navegadores Testados:**
+
+- ✅ Chrome 88+ (recomendado)
+- ✅ Firefox 85+
+- ✅ Safari 14+ (limitações na gravação)
+- ✅ Edge 88+
 
 **Opcionais (para MQTT):**
+
 - Docker (recomendado) ou Mosquitto standalone
 - Para funcionalidades distribuídas e microserviços
 
 > 💡 **Instalação rápida do Docker:**
+>
 > - **Windows**: [Docker Desktop](https://www.docker.com/products/docker-desktop)
 > - **Linux**: `curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh`
 > - **macOS**: `brew install --cask docker`
@@ -159,6 +203,7 @@ npm run dev  # Desenvolvimento
 Abra [http://localhost:8080](http://localhost:8080) no navegador.
 
 **APIs de Monitoramento:**
+
 - Status do sistema: [http://localhost:8080/api/system/status](http://localhost:8080/api/system/status)
 
 ### 🔧 Resolução de Problemas Comuns
@@ -168,6 +213,7 @@ Abra [http://localhost:8080](http://localhost:8080) no navegador.
 **Problema**: O servidor Node.js não consegue conectar ao broker MQTT.
 
 **Solução**:
+
 ```bash
 # Verificar se o container MQTT está rodando
 docker ps
@@ -185,12 +231,14 @@ npm start
 **Windows**: Baixe o [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
 **Linux (Ubuntu/Debian)**:
+
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 ```
 
 **macOS**:
+
 ```bash
 brew install --cask docker
 ```
@@ -205,23 +253,64 @@ lsof -i :8080                 # Linux/macOS
 # Matar processo se necessário
 taskkill /F /PID <PID>        # Windows
 kill -9 <PID>                # Linux/macOS
+
+# Ou alterar a porta no .env
+PORT=3000
+```
+
+#### 🍃 MongoDB não conecta
+
+```bash
+# Verificar se o MongoDB está rodando
+docker-compose logs mongodb
+
+# Reiniciar apenas o MongoDB
+docker-compose restart mongodb
+
+# Verificar conexão manual
+mongosh "mongodb://admin:password123@localhost:27017/forumdb?authSource=admin"
 ```
 
 ---
 
-## 🔧 Configuração MQTT
+## 🔧 Configurações
 
-O sistema usa MQTT para comunicação entre microserviços. As configurações podem ser ajustadas via variáveis de ambiente:
+### Autenticação JWT
+
+O sistema utiliza JWT para autenticação. Configure o JWT Secret antes de usar em produção:
 
 ```bash
 # Copiar arquivo de exemplo
 cp .env.example .env
 
-# Editar configurações MQTT
+# Configurar JWT Secret (OBRIGATÓRIO para produção)
+JWT_SECRET=your-super-secret-jwt-key-here-min-32-chars
+
+# Configurar MongoDB
+MONGODB_URI=mongodb://admin:password123@localhost:27017/forumdb?authSource=admin
+```
+
+⚠️ **Importante**: Em produção, use um JWT Secret forte com pelo menos 32 caracteres aleatórios.
+
+### Configuração MQTT
+
+O sistema usa MQTT para comunicação entre microserviços. As configurações podem ser ajustadas via variáveis de ambiente:
+
+```bash
+# Editar configurações MQTT no .env
 MQTT_HOST=localhost
 MQTT_PORT=1883
 MQTT_USERNAME=
 MQTT_PASSWORD=
+MQTT_CLIENT_ID_PREFIX=forum-backend
+
+# Configurações adicionais
+PORT=8080
+NODE_ENV=development
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=./public/uploads
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
 ### Tópicos MQTT Utilizados
@@ -244,35 +333,57 @@ npm run dev
 
 # Testar conexão MQTT
 npm run test-mqtt
+
+# Scripts Docker
+npm run docker:build   # Build das imagens
+npm run docker:up      # Subir containers em background
+npm run docker:down    # Parar containers
+npm run docker:logs    # Ver logs dos containers
 ```
 
 ---
 
 ## 📋 Como Usar
 
+### 🔐 Primeiro Acesso
+
+1. **Acesse** [http://localhost:8080](http://localhost:8080)
+2. **Se não estiver logado**, você será redirecionado para a página de login
+3. **Faça login** ou **registre-se** se for seu primeiro acesso
+4. **Nome de usuário**: Apenas letras, números e underscore
+5. **Senha**: Mínimo 6 caracteres
+
 ### 🆕 Criar uma Nova Sala
 
-1. Preencha o nome da sala e seu nome na página inicial.
-2. Clique em "Criar Sala".
-3. Um código único será gerado.
-4. Compartilhe o código com outros usuários.
-5. Clique em "Entrar na Sala" para começar.
+1. Preencha o nome da sala na página inicial
+2. Clique em "Criar Sala"
+3. Um código único de 8 caracteres será gerado
+4. Compartilhe o código com outros usuários
+5. Clique em "Entrar na Sala" para começar
 
 ### 🚪 Entrar em uma Sala Existente
 
-1. Digite o código da sala recebido.
-2. Digite seu nome de usuário.
-3. Clique em "Entrar na Sala".
+1. Digite o código da sala recebido (8 caracteres)
+2. Clique em "Entrar na Sala"
+3. Você será redirecionado para a sala automaticamente
 
 ### 💬 Funcionalidades da Sala
 
-- **Mensagens de Texto**: Digite e envie pelo campo inferior.
-- **Gravação de Áudio**: Clique no botão 🎤, grave e envie.
-- **Envio de Arquivos**: Clique no botão 📎, selecione o arquivo (máx. 10MB) e envie.
-- **Visualização de Mídia**: Imagens, vídeos, áudios, PDFs e textos com preview/modal.
-- **Lista de Usuários**: Sidebar mostra quem está online.
-- **Copiar Código**: Botão 📋 no header.
-- **Sair da Sala**: Botão "Sair" com confirmação.
+- **Mensagens de Texto**: Digite e envie pelo campo inferior
+- **Gravação de Áudio**: Clique no botão 🎤, grave e envie
+- **Envio de Arquivos**: Clique no botão 📎, selecione o arquivo (máx. 10MB) e envie
+- **Visualização de Mídia**: Imagens, vídeos, áudios, PDFs e textos com preview/modal
+- **Lista de Usuários**: Sidebar mostra quem está online
+- **Copiar Código**: Botão 📋 no header
+- **Sair da Sala**: Botão "Sair" com confirmação
+
+#### 📁 Formatos de Arquivo Suportados
+
+**Imagens**: JPG, JPEG, PNG, GIF, WebP, BMP, SVG  
+**Vídeos**: MP4, AVI, MOV, WMV, FLV, MKV, WebM  
+**Áudios**: MP3, WAV, OGG, M4A, AAC, WebM (áudio)  
+**Documentos**: PDF, TXT, MD, LOG, DOC, DOCX  
+**Outros**: ZIP, RAR, JSON, XML, CSV
 
 ---
 
@@ -280,13 +391,19 @@ npm run test-mqtt
 
 ### Backend
 
-- Node.js, Express.js
-- WebSocket (ws) para comunicação frontend-backend
-- MQTT para comunicação backend-serviços (distribuída)
-- SQLite3
-- Multer (upload de arquivos)
-- UUID (IDs únicos)
-- Express Rate Limit (proteção contra spam)
+- **Node.js 20+** - Runtime JavaScript
+- **Express.js** - Framework web
+- **WebSocket (ws)** - Comunicação real-time frontend-backend
+- **MQTT** - Comunicação distribuída backend-serviços
+- **MongoDB** - Banco de dados NoSQL
+- **Mongoose ODM** - Modelagem de dados MongoDB
+- **JWT** - Autenticação e sessões
+- **bcryptjs** - Hash de senhas
+- **Multer** - Upload de arquivos
+- **UUID** - Geração de IDs únicos
+- **Express Rate Limit** - Proteção contra spam
+- **CORS** - Configuração de recursos de origem cruzada
+- **dotenv** - Gerenciamento de variáveis de ambiente
 
 ### Frontend
 
@@ -310,27 +427,54 @@ npm run test-mqtt
 - Preload e lazy loading de mídias
 - Compressão e cache de assets
 
+### ⚠️ Notas de Segurança (Produção)
+
+**Para ambiente de produção, seria necessário:**
+
+- Resolver vulnerabilidades conhecidas na imagem Docker base
+- Implementar HTTPS com certificados SSL
+- Configurar firewall e políticas de rede
+- Adicionar monitoramento de segurança
+- Implementar backup automatizado
+- Configurar logs de auditoria
+
+_Este projeto foi desenvolvido para fins acadêmicos/demonstração._
+
 ---
 
 ## 🔮 Roadmap
 
-### Funcionalidades Web
+### 🎯 Versão 2.2 (Próxima)
+
+#### Funcionalidades Web
+
 - [ ] Indicador de "usuário digitando"
 - [ ] Emojis e reações nas mensagens
-- [ ] Temas escuro/claro
-- [ ] Sons de notificação
-- [ ] Mensagens privadas
-- [ ] Moderação de salas
+- [ ] Temas escuro/claro personalizáveis
+- [ ] Sons de notificação customizáveis
+- [ ] Mensagens privadas entre usuários
+- [ ] Sistema de moderação de salas
 
-### Integração MQTT
+#### Melhorias Técnicas
+
+- [ ] Compressão automática de imagens
+- [ ] Cache inteligente de arquivos
+- [ ] Backup automático de conversas
+- [ ] Logs de auditoria detalhados
+
+### 🚀 Versão 3.0 (Futuro)
+
+#### Integração MQTT Avançada
+
 - [x] Bridge WebSocket-MQTT implementado
 - [x] Publicação de eventos via MQTT
 - [x] Analytics em tempo real
-- [ ] Dashboard de monitoramento
-- [ ] Microserviços de notificação
-- [ ] Serviço de moderação automática
+- [ ] Dashboard de monitoramento em tempo real
+- [ ] Microserviços de notificação push
+- [ ] Serviço de moderação automática via IA
 - [ ] Cache distribuído via Redis
 - [ ] Load balancing com múltiplas instâncias
+- [ ] Federação entre instâncias (protocolo próprio)
 
 ---
 
@@ -346,7 +490,7 @@ npm run test-mqtt
                                        │
                                        ▼
                                 ┌─────────────┐
-                                │   SQLite    │
+                                │   MongoDB   │
                                 │ (Persistência)│
                                 └─────────────┘
 ```
@@ -355,12 +499,45 @@ npm run test-mqtt
 
 1. **Frontend ↔ Backend**: WebSocket para baixa latência
 2. **Backend ↔ Serviços**: MQTT para distribuição e escalabilidade
-3. **Persistência**: SQLite para dados locais
+3. **Persistência**: MongoDB para dados escaláveis e distribuídos
 4. **Fallback**: Sistema funciona sem MQTT se necessário
 
 ---
 
-## 🤝 Contribuindo
+## � Desenvolvimento e Testes
+
+### Páginas de Teste Disponíveis
+
+Para desenvolvedores, existem páginas de teste úteis:
+
+- [http://localhost:8080/test-api.html](http://localhost:8080/test-api.html) - Teste das APIs
+- [http://localhost:8080/test-room.html](http://localhost:8080/test-room.html) - Teste de sala de chat
+- [http://localhost:8080/test-room-api.html](http://localhost:8080/test-room-api.html) - Teste de APIs de sala
+
+### Monitoramento
+
+- **Status do Sistema**: [http://localhost:8080/api/system/status](http://localhost:8080/api/system/status)
+- **Logs**: Use `docker-compose logs -f forum-app` para ver logs em tempo real
+
+### Scripts de Desenvolvimento
+
+```bash
+# Desenvolvimento com auto-reload
+npm run dev
+
+# Teste de conexão MQTT
+npm run test-mqtt
+
+# Comandos Docker úteis
+npm run docker:build   # Build das imagens
+npm run docker:up      # Subir containers
+npm run docker:down    # Parar containers
+npm run docker:logs    # Ver logs
+```
+
+---
+
+## �🤝 Contribuindo
 
 Contribuições são bem-vindas! Veja [CONTRIBUTING.md](CONTRIBUTING.md) para detalhes.
 
@@ -379,3 +556,9 @@ Para dúvidas ou problemas:
 - **Issues**: [GitHub Issues](https://github.com/JoyceKCsilva/WebChat_SistemasDistribuidosProject/issues)
 - **Documentação**: [CHECKLIST-TESTES.md](CHECKLIST-TESTES.md) para testes
 - **Configuração**: [.env.example](.env.example) para variáveis de ambiente
+
+### Links Úteis
+
+- **API Status**: [http://localhost:8080/api/system/status](http://localhost:8080/api/system/status)
+- **Aplicação**: [http://localhost:8080](http://localhost:8080)
+- **Login**: [http://localhost:8080/login.html](http://localhost:8080/login.html)
